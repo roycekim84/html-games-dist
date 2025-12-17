@@ -1,0 +1,3565 @@
+
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Pixel Fantasy Hero Maker</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.5.2/css/all.css">
+
+  <style>
+    :root{
+      --bg:#0b0f1a;
+      --panel:#121a2b;
+      --panel2:#0f1626;
+      --ink:#e8f0ff;
+      --muted:#a7b4d0;
+      --good:#58e26a;
+      --warn:#ffcf5a;
+      --bad:#ff5a7a;
+      --accent:#7aa7ff;
+      --accent2:#b37aff;
+      --outline:rgba(255,255,255,.12);
+      --shadow:0 14px 40px rgba(0,0,0,.55);
+      --px: "Press Start 2P", ui-monospace, "Roboto Mono", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --mono: "Roboto Mono", ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; margin:0; background:radial-gradient(1200px 700px at 60% 25%, rgba(122,167,255,.12), transparent 55%), radial-gradient(900px 600px at 20% 80%, rgba(179,122,255,.10), transparent 60%), var(--bg); color:var(--ink); font-family:var(--mono); }
+    body{ display:flex; align-items:stretch; justify-content:center; }
+    a{ color:inherit; }
+
+    #app{
+      width:min(1100px, 100%);
+      padding: clamp(10px, 2.2vw, 18px);
+      display:grid;
+      grid-template-rows:auto 1fr auto;
+      gap:12px;
+      min-height:100%;
+    }
+
+    header{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:12px 14px;
+      background:linear-gradient(180deg, rgba(18,26,43,.92), rgba(15,22,38,.86));
+      border:1px solid var(--outline);
+      border-radius:14px;
+      box-shadow:var(--shadow);
+      gap:12px;
+    }
+    .brand{
+      display:flex; gap:12px; align-items:center;
+      min-width:0;
+    }
+    .logo{
+      width:40px; height:40px; border-radius:10px;
+      background:linear-gradient(135deg, rgba(122,167,255,.28), rgba(179,122,255,.20));
+      border:1px solid rgba(255,255,255,.18);
+      display:grid; place-items:center;
+      flex:none;
+    }
+    .logo i{ color:rgba(232,240,255,.92); filter:drop-shadow(0 6px 16px rgba(0,0,0,.35)); }
+    .titlewrap{ min-width:0; }
+    .title{
+      font-family:var(--px);
+      font-size:clamp(12px, 1.6vw, 16px);
+      letter-spacing:.4px;
+      line-height:1.2;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .subtitle{
+      margin-top:6px;
+      color:var(--muted);
+      font-size:12px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .topright{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+    .kbd{
+      font-family:var(--mono);
+      font-size:12px;
+      color:var(--muted);
+      display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+    }
+    .kbd span{
+      padding:6px 9px;
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:10px;
+      background:rgba(255,255,255,.05);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+    }
+    .btnrow{ display:flex; gap:8px; align-items:center; }
+    button{
+      appearance:none;
+      border:1px solid rgba(255,255,255,.16);
+      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+      color:var(--ink);
+      padding:9px 10px;
+      border-radius:12px;
+      cursor:pointer;
+      transition:transform .08s ease, border-color .12s ease, background .12s ease;
+      font-family:var(--mono);
+      font-weight:700;
+      font-size:13px;
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      user-select:none;
+    }
+    button:hover{ border-color:rgba(122,167,255,.55); }
+    button:active{ transform:translateY(1px); }
+    button.secondary{
+      color:var(--muted);
+      font-weight:700;
+      background:rgba(255,255,255,.04);
+    }
+    button.danger{
+      border-color:rgba(255,90,122,.35);
+    }
+    button.danger:hover{ border-color:rgba(255,90,122,.7); }
+
+    #stage{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:12px;
+      min-height:0;
+    }
+
+    .frame{
+      position:relative;
+      border-radius:16px;
+      border:1px solid var(--outline);
+      background:linear-gradient(180deg, rgba(18,26,43,.86), rgba(15,22,38,.82));
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      min-height:0;
+    }
+    #gamewrap{
+      aspect-ratio: 16/9;
+      width:100%;
+      height:auto;
+      min-height: 340px;
+      max-height: calc(100vh - 220px);
+      display:block;
+    }
+    canvas{
+      width:100%;
+      height:100%;
+      display:block;
+      image-rendering: pixelated;
+      background: transparent;
+    }
+
+    .hudOverlay{
+      position:absolute;
+      left:12px; right:12px; top:10px;
+      display:flex; justify-content:space-between; gap:10px;
+      pointer-events:none;
+    }
+    .hudLeft, .hudRight{
+      display:flex; gap:10px; align-items:flex-start;
+      pointer-events:auto;
+    }
+    .hudCard{
+      background:rgba(0,0,0,.30);
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:14px;
+      padding:10px 10px;
+      backdrop-filter: blur(6px);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+      min-width:240px;
+    }
+    .hudCard.compact{ min-width:auto; padding:10px; }
+    .hudTitle{
+      font-family:var(--px);
+      font-size:10px;
+      letter-spacing:.3px;
+      color:rgba(232,240,255,.92);
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px;
+      margin-bottom:8px;
+    }
+    .hudMeta{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:6px;
+      display:flex; gap:10px; flex-wrap:wrap;
+    }
+
+    .bar{
+      height:10px;
+      border-radius:999px;
+      background:rgba(255,255,255,.10);
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.12);
+    }
+    .bar > i{
+      display:block; height:100%;
+      width:50%;
+      background:linear-gradient(90deg, rgba(122,167,255,.85), rgba(179,122,255,.75));
+    }
+    .bar.hp > i{ background:linear-gradient(90deg, rgba(255,90,122,.92), rgba(255,207,90,.45)); }
+    .bar.mp > i{ background:linear-gradient(90deg, rgba(122,167,255,.92), rgba(88,226,106,.45)); }
+    .bar.xp > i{ background:linear-gradient(90deg, rgba(88,226,106,.92), rgba(122,167,255,.45)); }
+
+    .rows{ display:grid; gap:7px; }
+    .row{ display:grid; grid-template-columns: 44px 1fr; gap:8px; align-items:center; }
+    .lbl{ font-family:var(--px); font-size:9px; color:rgba(232,240,255,.86); }
+    .val{ font-size:12px; color:var(--muted); margin-top:4px; display:flex; justify-content:space-between; gap:10px; }
+    .slots{
+      display:flex; gap:8px; align-items:center;
+      margin-top:8px;
+      flex-wrap:wrap;
+    }
+    .slot{
+      width:36px; height:36px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.16);
+      background:rgba(255,255,255,.06);
+      display:grid; place-items:center;
+      color:rgba(232,240,255,.86);
+      font-size:14px;
+      position:relative;
+    }
+    .slot small{
+      position:absolute;
+      bottom:-7px; left:50%;
+      transform:translateX(-50%);
+      padding:2px 6px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.28);
+      font-family:var(--mono);
+      font-weight:700;
+      font-size:10px;
+      color:var(--muted);
+    }
+
+    .toast{
+      position:absolute;
+      left:50%;
+      top:50%;
+      transform:translate(-50%, -50%);
+      background:rgba(0,0,0,.55);
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:16px;
+      padding:14px 14px;
+      min-width:min(560px, calc(100% - 40px));
+      max-width:780px;
+      box-shadow:var(--shadow);
+      backdrop-filter: blur(10px);
+      pointer-events:auto;
+    }
+    .toast h2{
+      margin:0 0 10px 0;
+      font-family:var(--px);
+      font-size:12px;
+      letter-spacing:.25px;
+      line-height:1.35;
+    }
+    .toast p{
+      margin:0 0 12px 0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.55;
+    }
+    .grid3{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap:10px;
+    }
+    .grid2{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap:10px;
+    }
+    .card{
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:14px;
+      padding:12px;
+      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+      cursor:pointer;
+      user-select:none;
+      transition: transform .08s ease, border-color .12s ease, background .12s ease;
+    }
+    .card:hover{ border-color:rgba(122,167,255,.55); }
+    .card:active{ transform:translateY(1px); }
+    .card.sel{
+      border-color:rgba(122,167,255,.85);
+      outline: 2px solid rgba(122,167,255,.30);
+      background:linear-gradient(180deg, rgba(122,167,255,.16), rgba(255,255,255,.02));
+    }
+    .card h3{
+      margin:0 0 8px 0;
+      font-family:var(--px);
+      font-size:10px;
+      line-height:1.45;
+      letter-spacing:.25px;
+      display:flex; align-items:center; gap:8px;
+    }
+    .card .desc{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.55;
+      min-height:54px;
+    }
+    .pill{
+      display:inline-flex;
+      gap:6px;
+      align-items:center;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.22);
+      color:rgba(232,240,255,.88);
+      font-size:11px;
+      font-weight:800;
+      margin-top:8px;
+    }
+    .footer{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      color:var(--muted);
+      font-size:12px;
+      padding:10px 2px 2px 2px;
+    }
+    .hint{ color:rgba(232,240,255,.88); }
+    .muted{ color:var(--muted); }
+
+    .overlay{
+      position:absolute; inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      background:radial-gradient(1000px 680px at 50% 45%, rgba(0,0,0,.68), rgba(0,0,0,.82));
+      backdrop-filter: blur(8px);
+      pointer-events:auto;
+    }
+    .overlay.on{ display:flex; }
+    .overlay .toast{ max-height: calc(100% - 40px); overflow:auto; }
+
+    .creditslist{
+      display:grid;
+      gap:10px;
+      margin-top:10px;
+    }
+    .credititem{
+      padding:10px;
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:14px;
+      background:rgba(255,255,255,.04);
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.55;
+    }
+    .credititem b{ color:rgba(232,240,255,.92); }
+    .smallnote{ font-size:12px; color:var(--muted); line-height:1.55; }
+
+    @media (max-width: 700px){
+      .hudCard{ min-width: 0; }
+      .grid3{ grid-template-columns: 1fr; }
+      .grid2{ grid-template-columns: 1fr; }
+      header{ padding:10px 12px; }
+      .kbd{ display:none; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"><i class="fa-solid fa-dungeon"></i></div>
+        <div class="titlewrap">
+          <div class="title">Pixel Fantasy Hero Maker</div>
+          <div class="subtitle">procedural dungeon • hero customization • permadeath + meta progression</div>
+        </div>
+      </div>
+      <div class="topright">
+        <div class="kbd" aria-label="controls">
+          <span>Move: WASD/Arrows</span>
+          <span>Dash: Shift</span>
+          <span>Interact: E</span>
+          <span>Start/Pause: Space</span>
+          <span>Restart: R</span>
+        </div>
+        <div class="btnrow">
+          <button id="btnCredits" class="secondary" type="button" title="Credits"><i class="fa-regular fa-star"></i><span>Credits</span></button>
+          <button id="btnMute" class="secondary" type="button" title="Toggle SFX"><i class="fa-solid fa-volume-high"></i><span>SFX</span></button>
+        </div>
+      </div>
+    </header>
+
+    <div id="stage">
+      <div class="frame" id="gamewrap" role="application" aria-label="Pixel Fantasy Hero Maker game">
+        <canvas id="cv" width="960" height="540"></canvas>
+
+        <div class="hudOverlay" aria-hidden="true">
+          <div class="hudLeft">
+            <div class="hudCard">
+              <div class="hudTitle">
+                <span id="hudName" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">HERO</span>
+                <span id="hudState" style="color:rgba(232,240,255,.80);font-family:var(--mono);font-weight:800;font-size:12px;">HUB</span>
+              </div>
+
+              <div class="rows">
+                <div class="row">
+                  <div class="lbl">HP</div>
+                  <div>
+                    <div class="bar hp"><i id="barHP"></i></div>
+                    <div class="val"><span id="txtHP">0/0</span><span id="txtStage">Stage 1/8</span></div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="lbl">MP</div>
+                  <div>
+                    <div class="bar mp"><i id="barMP"></i></div>
+                    <div class="val"><span id="txtMP">0/0</span><span id="txtGold">Gold 0</span></div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="lbl">XP</div>
+                  <div>
+                    <div class="bar xp"><i id="barXP"></i></div>
+                    <div class="val"><span id="txtXP">Lv 1</span><span id="txtTime">Time 0.0s</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="slots" title="Equipment Slots">
+                <div class="slot" id="slotW" title="Weapon"><i class="fa-solid fa-sword"></i><small>W</small></div>
+                <div class="slot" id="slotA" title="Armor"><i class="fa-solid fa-shield-halved"></i><small>A</small></div>
+                <div class="slot" id="slotT" title="Trinket"><i class="fa-solid fa-ring"></i><small>T</small></div>
+                <div class="slot" id="slotS" title="Skill Focus"><i class="fa-solid fa-wand-magic-sparkles"></i><small>S</small></div>
+              </div>
+
+              <div class="hudMeta">
+                <span id="txtDash">Dash: Ready</span>
+                <span id="txtBoss">Boss: -</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="hudRight">
+            <div class="hudCard compact">
+              <div class="hudTitle"><span>Meta</span><span style="color:var(--muted);font-family:var(--mono);font-weight:800;font-size:12px;" id="txtMeta">0 ✦</span></div>
+              <div class="smallnote" id="txtRunNote">Space: Start • E: Interact</div>
+              <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end;">
+                <button id="btnQuickRestart" class="danger" type="button"><i class="fa-solid fa-rotate-right"></i><span>Restart (R)</span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="overlay" id="overlayMain" aria-hidden="false">
+          <div class="toast" id="toastMain">
+            <h2 id="ovTitle">HUB</h2>
+            <p id="ovDesc">Customize your pixel hero, spend meta essence, then press Space to begin the run.</p>
+
+            <div class="grid2" id="hubGrid">
+              <div class="card" id="hubHeroCard" tabindex="0">
+                <h3><i class="fa-solid fa-user-astronaut"></i><span>Hero Maker</span></h3>
+                <div class="desc">
+                  Choose palette, starting loadout, and your run skill focus.
+                  Your run build resets on death, but meta upgrades persist.
+                </div>
+                <div class="pill" id="hubHeroPill">E: Customize</div>
+              </div>
+
+              <div class="card" id="hubMetaCard" tabindex="0">
+                <h3><i class="fa-solid fa-gem"></i><span>Meta Upgrades</span></h3>
+                <div class="desc">
+                  Spend ✦ essence to permanently improve your hero.
+                  Records and upgrade history are saved locally.
+                </div>
+                <div class="pill" id="hubMetaPill">E: Upgrade</div>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:14px;flex-wrap:wrap;">
+              <div class="smallnote">
+                <span class="hint">Controls</span>: Move WASD/Arrows • Dash Shift • Interact E • Start/Pause Space • Restart R
+              </div>
+              <div style="display:flex;gap:10px;align-items:center;">
+                <button id="btnStart" type="button"><i class="fa-solid fa-play"></i><span>Start (Space)</span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="overlay" id="overlaySub" aria-hidden="true">
+          <div class="toast" id="toastSub"></div>
+        </div>
+
+        <div class="overlay" id="overlayCredits" aria-hidden="true">
+          <div class="toast">
+            <h2><i class="fa-regular fa-star"></i> Credits & Licenses</h2>
+            <p class="smallnote">
+              This single-file game draws all visual assets procedurally using Canvas and CSS.
+              External resources are limited to an allowlist of domains and are credited below.
+            </p>
+            <div class="creditslist">
+              <div class="credititem">
+                <b>Google Fonts</b> (Press Start 2P, Roboto Mono) via <span class="hint">fonts.googleapis.com</span> / <span class="hint">fonts.gstatic.com</span><br>
+                License: SIL Open Font License (OFL). Fonts are loaded with fallbacks to system monospace if unavailable.
+              </div>
+              <div class="credititem">
+                <b>Font Awesome</b> icons via <span class="hint">use.fontawesome.com</span><br>
+                License: Font Awesome Free (per Font Awesome licensing). Icons are decorative and optional; UI works without them.
+              </div>
+              <div class="credititem">
+                <b>Audio/SFX</b>: generated at runtime using WebAudio oscillators (no external files).
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;">
+              <button id="btnCloseCredits" type="button"><i class="fa-solid fa-xmark"></i><span>Close</span></button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="footer">
+      <div><span class="hint">Score</span>: time survived only • no combo • no accuracy tracking</div>
+      <div class="muted">Local save: meta upgrades + run records (localStorage)</div>
+    </div>
+  </div>
+
+  <script>
+  (()=>{
+    "use strict";
+
+    const CONFIG = {
+      tech: {
+        baseW: 320,
+        baseH: 180,
+        pixelScaleMin: 2,
+        pixelScaleMax: 6,
+        fontFallback: "ui-monospace, Menlo, Monaco, Consolas, 'Liberation Mono', monospace"
+      },
+      game: {
+        stages: 8,
+        bossStages: [4,8],
+        stageTimeSoftCap: 120,
+        scorePerSecond: 1,
+        permadeath: true,
+        seedSalt: 1337
+      },
+      scaling: {
+        curve: 1.18,
+        spawnRateUp: 0.92,
+        speedUpOverTime: 0.0026,
+        enemyHPUp: 1.14,
+        enemyDMGUp: 1.12,
+        bossHPUp: 1.30,
+        bossDMGUp: 1.18
+      },
+      player: {
+        base: {
+          maxHP: 100,
+          maxMP: 60,
+          speed: 72,
+          iFrames: 0.28,
+          pickupRadius: 12
+        },
+        dash: {
+          speedMul: 2.2,
+          duration: 0.16,
+          cooldown: 1.1,
+          iFrames: 0.22
+        },
+        combat: {
+          contactDamage: 10,
+          projectileHitDamage: 12,
+          regenMPPerSec: 4
+        }
+      },
+      weapons: {
+        sword: { name:"Iron Sword", icon:"fa-sword", rate: 0.18, dmg: 14, range: 18, arc: 1.2, knock: 70, mpCost: 0 },
+        bow:   { name:"Hunter Bow", icon:"fa-bow-arrow", rate: 0.28, dmg: 10, projSpd: 150, spread: 0.10, knock: 40, mpCost: 0 },
+        staff: { name:"Arcane Staff", icon:"fa-wand-magic-sparkles", rate: 0.36, dmg: 9, projSpd: 130, pierce: 1, mpCost: 6, knock: 35 }
+      },
+      armors: {
+        cloth:  { name:"Cloth", icon:"fa-shirt", hp: 0,  dr: 0.00, speed: 0 },
+        leather:{ name:"Leather", icon:"fa-user-shield", hp: 10, dr: 0.06, speed: 4 },
+        plate:  { name:"Plate", icon:"fa-shield-halved", hp: 24, dr: 0.12, speed: -6 }
+      },
+      trinkets: {
+        none:   { name:"None", icon:"fa-circle-minus", gold:0, xp:0, luck:0, mp:0 },
+        ring:   { name:"Luck Ring", icon:"fa-ring", gold:0.12, xp:0.06, luck:0.10, mp: 6 },
+        charm:  { name:"Charm of Flow", icon:"fa-sun", gold:0.00, xp:0.10, luck:0.00, mp: 12 },
+        coin:   { name:"Coin Token", icon:"fa-coins", gold:0.18, xp:0.00, luck:0.05, mp: 0 }
+      },
+      items: {
+        potion:   { name:"Potion", icon:"fa-flask", kind:"consumable", heal: 32 },
+        ether:    { name:"Ether", icon:"fa-droplet", kind:"consumable", mana: 26 },
+        goldpile: { name:"Gold Pile", icon:"fa-coins", kind:"gold", amount: [8,18] },
+        chest:    { name:"Chest", icon:"fa-box", kind:"gold", amount: [18,44] },
+        orb:      { name:"XP Orb", icon:"fa-circle-dot", kind:"xp", amount: [12,26] }
+      },
+      obstacles: {
+        pillar: { name:"Pillar", hp: 9999, blocks:true },
+        barrel: { name:"Barrel", hp: 18, blocks:true, breakDrops:true },
+        spikes: { name:"Spikes", hp: 9999, blocks:false, hurts:true },
+        pit:    { name:"Pit", hp: 9999, blocks:false, slows:true },
+        rubble: { name:"Rubble", hp: 9999, blocks:true, soft:true }
+      },
+      enemyTypes: [
+        { id:"slime", name:"Slime", kind:"melee", hp: 24, spd: 44, dmg: 10, xp: 10, gold:[2,5], color:[80,220,120] },
+        { id:"bat", name:"Bat", kind:"melee", hp: 18, spd: 78, dmg: 8, xp: 9, gold:[2,4], color:[160,140,255] },
+        { id:"skeleton", name:"Skeleton", kind:"melee", hp: 30, spd: 54, dmg: 12, xp: 12, gold:[3,6], color:[220,220,220] },
+        { id:"archer", name:"Archer", kind:"ranged", hp: 24, spd: 48, dmg: 10, xp: 13, gold:[3,7], proj: { spd: 120, rate: 1.35 }, color:[255,210,110] },
+        { id:"mage", name:"Mage", kind:"ranged", hp: 22, spd: 42, dmg: 14, xp: 15, gold:[4,8], proj: { spd: 110, rate: 1.55, wobble:0.16 }, color:[120,180,255] },
+        { id:"brute", name:"Brute", kind:"melee", hp: 48, spd: 36, dmg: 18, xp: 20, gold:[6,12], color:[255,120,140] }
+      ],
+      stageChoices: [
+        { id:"treasure", name:"Treasure Route", icon:"fa-coins", desc:"More gold drops, slightly more obstacles.", mod:{ goldMul:1.25, obstacleMul:1.20, enemyMul:1.00, xpMul:1.00 } },
+        { id:"shrine", name:"Ancient Shrine", icon:"fa-ankh", desc:"More XP, enemies slightly faster.", mod:{ goldMul:1.00, obstacleMul:1.00, enemyMul:1.05, xpMul:1.25 } },
+        { id:"war", name:"War Tunnels", icon:"fa-skull", desc:"More enemies, better essence reward.", mod:{ goldMul:1.05, obstacleMul:1.00, enemyMul:1.20, xpMul:1.05, essenceBonus:1 } },
+        { id:"calm", name:"Quiet Cavern", icon:"fa-feather", desc:"Fewer enemies, better healing drops.", mod:{ goldMul:0.95, obstacleMul:1.00, enemyMul:0.86, xpMul:0.95, healBoost:0.12 } }
+      ],
+      runUpgrades: [
+        { id:"hp_up", name:"Vital Spark", icon:"fa-heart", desc:"+20 Max HP", apply:(p)=>{ p.stats.maxHP += 20; p.hp = Math.min(p.hp+16, p.stats.maxHP); } },
+        { id:"mp_up", name:"Mana Vial", icon:"fa-bolt", desc:"+16 Max MP & +1 MP regen", apply:(p)=>{ p.stats.maxMP += 16; p.mp = Math.min(p.mp+10, p.stats.maxMP); p.stats.mpRegen += 1; } },
+        { id:"spd_up", name:"Fleet Steps", icon:"fa-person-running", desc:"+8 Move Speed", apply:(p)=>{ p.stats.speed += 8; } },
+        { id:"dash_cd", name:"Reflex Coil", icon:"fa-wind", desc:"-15% Dash Cooldown", apply:(p)=>{ p.stats.dashCDMul *= 0.85; } },
+        { id:"dmg_up", name:"Sharpen Edge", icon:"fa-fire", desc:"+12% Damage", apply:(p)=>{ p.stats.dmgMul *= 1.12; } },
+        { id:"luck", name:"Gleamfinder", icon:"fa-clover", desc:"+10% luck (more drops)", apply:(p)=>{ p.stats.luck += 0.10; } },
+        { id:"dr", name:"Iron Veil", icon:"fa-shield", desc:"+6% Damage Reduction", apply:(p)=>{ p.stats.dr = Math.min(0.35, p.stats.dr + 0.06); } },
+        { id:"heal_on_kill", name:"Bloodwarm", icon:"fa-hand-holding-heart", desc:"Heal 2 on kill", apply:(p)=>{ p.stats.healOnKill += 2; } },
+        { id:"mana_on_kill", name:"Soul Siphon", icon:"fa-hand-sparkles", desc:"+2 MP on kill", apply:(p)=>{ p.stats.manaOnKill += 2; } }
+      ],
+      metaUpgrades: [
+        { id:"meta_hp", name:"Heartforge", icon:"fa-heart", cost: 4, max: 5, desc:"+8 Max HP per rank", apply:(m)=>{ m.baseHP += 8; } },
+        { id:"meta_dash", name:"Dash Servo", icon:"fa-wind", cost: 5, max: 4, desc:"-0.08s Dash cooldown per rank", apply:(m)=>{ m.dashCD -= 0.08; } },
+        { id:"meta_gold", name:"Starter Purse", icon:"fa-coins", cost: 4, max: 5, desc:"+6 starting gold per rank", apply:(m)=>{ m.startGold += 6; } },
+        { id:"meta_potion", name:"Traveler Kit", icon:"fa-flask", cost: 6, max: 3, desc:"+1 free potion drop early", apply:(m)=>{ m.kit += 1; } },
+        { id:"meta_focus", name:"Skill Memory", icon:"fa-brain", cost: 8, max: 3, desc:"+1 starting skill point per rank", apply:(m)=>{ m.startSkill += 1; } }
+      ],
+      heroMaker: {
+        palettes: [
+          { id:"ember", name:"Ember", body:[255,120,140], accent:[255,207,90], trim:[122,167,255] },
+          { id:"aqua", name:"Aqua", body:[88,226,106], accent:[122,167,255], trim:[179,122,255] },
+          { id:"violet", name:"Violet", body:[179,122,255], accent:[122,167,255], trim:[255,90,122] },
+          { id:"stone", name:"Stone", body:[220,220,220], accent:[255,207,90], trim:[122,167,255] },
+          { id:"midnight", name:"Midnight", body:[140,160,255], accent:[88,226,106], trim:[255,207,90] }
+        ]
+      },
+      audio: {
+        enabled: true,
+        master: 0.22
+      }
+    };
+
+    const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+    const lerp = (a,b,t)=>a+(b-a)*t;
+    const rnd = (a=1,b=0)=>Math.random()*(a-b)+b;
+    const irnd = (a,b)=>Math.floor(rnd(a+1,b));
+    const now = ()=>performance.now();
+    const TAU = Math.PI*2;
+
+    function mulberry32(seed){
+      let t = seed>>>0;
+      return function(){
+        t += 0x6D2B79F5;
+        let r = Math.imul(t ^ (t>>>15), 1 | t);
+        r ^= r + Math.imul(r ^ (r>>>7), 61 | r);
+        return ((r ^ (r>>>14))>>>0) / 4294967296;
+      };
+    }
+
+    const LS_KEY = "pfhm_save_v1";
+    const defaultSave = ()=>{
+      return {
+        version: 1,
+        meta: {
+          essence: 0,
+          ranks: {},
+          baseHP: 0,
+          dashCD: 0,
+          startGold: 0,
+          kit: 0,
+          startSkill: 0
+        },
+        hero: {
+          name: "ROYCE",
+          palette: "ember",
+          weapon: "sword",
+          armor: "cloth",
+          trinket: "none",
+          focus: "blade"
+        },
+        records: []
+      };
+    };
+
+    function loadSave(){
+      try{
+        const raw = localStorage.getItem(LS_KEY);
+        if(!raw) return defaultSave();
+        const s = JSON.parse(raw);
+        if(!s || typeof s!=="object") return defaultSave();
+        const d = defaultSave();
+        const out = structuredClone(d);
+        out.version = 1;
+        if(s.meta){
+          out.meta.essence = +s.meta.essence || 0;
+          out.meta.ranks = s.meta.ranks && typeof s.meta.ranks==="object" ? s.meta.ranks : {};
+          out.meta.baseHP = +s.meta.baseHP || 0;
+          out.meta.dashCD = +s.meta.dashCD || 0;
+          out.meta.startGold = +s.meta.startGold || 0;
+          out.meta.kit = +s.meta.kit || 0;
+          out.meta.startSkill = +s.meta.startSkill || 0;
+        }
+        if(s.hero){
+          out.hero.name = (s.hero.name||d.hero.name).toString().slice(0,12).toUpperCase();
+          out.hero.palette = s.hero.palette || d.hero.palette;
+          out.hero.weapon = s.hero.weapon || d.hero.weapon;
+          out.hero.armor = s.hero.armor || d.hero.armor;
+          out.hero.trinket = s.hero.trinket || d.hero.trinket;
+          out.hero.focus = s.hero.focus || d.hero.focus;
+        }
+        if(Array.isArray(s.records)) out.records = s.records.slice(0,40);
+        return out;
+      }catch(e){
+        return defaultSave();
+      }
+    }
+
+    function saveNow(){
+      try{
+        localStorage.setItem(LS_KEY, JSON.stringify(SAVE));
+      }catch(e){}
+    }
+
+    const SAVE = loadSave();
+
+    function computeMetaDerived(){
+      const m = SAVE.meta;
+      const base = {
+        baseHP: 0,
+        dashCD: 0,
+        startGold: 0,
+        kit: 0,
+        startSkill: 0
+      };
+      for(const up of CONFIG.metaUpgrades){
+        const r = clamp(+m.ranks[up.id]||0, 0, up.max);
+        for(let i=0;i<r;i++) up.apply(base);
+      }
+      m.baseHP = base.baseHP;
+      m.dashCD = base.dashCD;
+      m.startGold = base.startGold;
+      m.kit = base.kit;
+      m.startSkill = base.startSkill;
+    }
+    computeMetaDerived();
+
+    const el = (id)=>document.getElementById(id);
+    const cv = el("cv");
+    const wrap = el("gamewrap");
+    const ctx = cv.getContext("2d");
+
+    const off = document.createElement("canvas");
+    off.width = CONFIG.tech.baseW;
+    off.height = CONFIG.tech.baseH;
+    const g = off.getContext("2d");
+
+    g.imageSmoothingEnabled = false;
+    ctx.imageSmoothingEnabled = false;
+
+    const UI = {
+      hudName: el("hudName"),
+      hudState: el("hudState"),
+      barHP: el("barHP"),
+      barMP: el("barMP"),
+      barXP: el("barXP"),
+      txtHP: el("txtHP"),
+      txtMP: el("txtMP"),
+      txtXP: el("txtXP"),
+      txtGold: el("txtGold"),
+      txtStage: el("txtStage"),
+      txtTime: el("txtTime"),
+      txtDash: el("txtDash"),
+      txtBoss: el("txtBoss"),
+      txtMeta: el("txtMeta"),
+      txtRunNote: el("txtRunNote"),
+      slotW: el("slotW"),
+      slotA: el("slotA"),
+      slotT: el("slotT"),
+      slotS: el("slotS"),
+      overlayMain: el("overlayMain"),
+      overlaySub: el("overlaySub"),
+      toastSub: el("toastSub"),
+      ovTitle: el("ovTitle"),
+      ovDesc: el("ovDesc"),
+      hubGrid: el("hubGrid"),
+      btnStart: el("btnStart"),
+      btnCredits: el("btnCredits"),
+      overlayCredits: el("overlayCredits"),
+      btnCloseCredits: el("btnCloseCredits"),
+      btnMute: el("btnMute"),
+      btnQuickRestart: el("btnQuickRestart")
+    };
+
+    function setSlotIcon(slotEl, iconClass, label){
+      const i = slotEl.querySelector("i");
+      if(i) i.className = "fa-solid " + iconClass;
+      slotEl.setAttribute("aria-label", label);
+    }
+
+    function updateSlots(hero){
+      setSlotIcon(UI.slotW, CONFIG.weapons[hero.weapon]?.icon || "fa-sword", "Weapon: "+(CONFIG.weapons[hero.weapon]?.name||""));
+      setSlotIcon(UI.slotA, CONFIG.armors[hero.armor]?.icon || "fa-shield-halved", "Armor: "+(CONFIG.armors[hero.armor]?.name||""));
+      setSlotIcon(UI.slotT, CONFIG.trinkets[hero.trinket]?.icon || "fa-ring", "Trinket: "+(CONFIG.trinkets[hero.trinket]?.name||""));
+      setSlotIcon(UI.slotS, hero.focus==="blade"?"fa-sword":(hero.focus==="arcane"?"fa-wand-magic-sparkles":"fa-bow-arrow"), "Focus: "+hero.focus.toUpperCase());
+    }
+    updateSlots(SAVE.hero);
+
+    function fmtTime(t){
+      if(!isFinite(t) || t<0) t=0;
+      if(t<1000) return t.toFixed(1)+"s";
+      const s = Math.floor(t);
+      const m = Math.floor(s/60);
+      const r = s%60;
+      return m+":"+String(r).padStart(2,"0");
+    }
+
+    const Keys = {
+      down: Object.create(null),
+      pressed: Object.create(null),
+      released: Object.create(null)
+    };
+
+    function keyNorm(k){
+      if(k===" ") return "Space";
+      return k;
+    }
+
+    window.addEventListener("keydown",(e)=>{
+      const k = keyNorm(e.key);
+      if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," ","Space","Shift"].includes(e.key) || ["w","a","s","d","W","A","S","D","e","E","r","R"].includes(e.key)){
+        e.preventDefault();
+      }
+      if(!Keys.down[k]){
+        Keys.pressed[k]=true;
+      }
+      Keys.down[k]=true;
+    }, {passive:false});
+
+    window.addEventListener("keyup",(e)=>{
+      const k = keyNorm(e.key);
+      if(Keys.down[k]) Keys.released[k]=true;
+      Keys.down[k]=false;
+    }, {passive:false});
+
+    function consumePressed(k){
+      if(Keys.pressed[k]){ Keys.pressed[k]=false; return true; }
+      return false;
+    }
+    function consumeReleased(k){
+      if(Keys.released[k]){ Keys.released[k]=false; return true; }
+      return false;
+    }
+    function isDown(...ks){
+      for(const k of ks) if(Keys.down[k]) return true;
+      return false;
+    }
+
+    function clearTransientKeys(){
+      Keys.pressed = Object.create(null);
+      Keys.released = Object.create(null);
+    }
+
+    const SFX = (()=>{
+      let ac=null, master=null;
+      let enabled = CONFIG.audio.enabled;
+      function ensure(){
+        if(ac) return;
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if(!AudioCtx) return;
+        ac = new AudioCtx();
+        master = ac.createGain();
+        master.gain.value = CONFIG.audio.master;
+        master.connect(ac.destination);
+      }
+      function setEnabled(v){
+        enabled = !!v;
+      }
+      function ping(type="ui"){
+        if(!enabled) return;
+        ensure();
+        if(!ac) return;
+        if(ac.state==="suspended") ac.resume().catch(()=>{});
+        const t0 = ac.currentTime;
+        const o = ac.createOscillator();
+        const g0 = ac.createGain();
+        o.type = "square";
+        let f = 300;
+        let dur = 0.08;
+        let a = 0.20;
+        if(type==="hit"){ f=220; dur=0.07; a=0.26; o.type="sawtooth"; }
+        if(type==="coin"){ f=740; dur=0.06; a=0.18; o.type="triangle"; }
+        if(type==="xp"){ f=520; dur=0.09; a=0.18; o.type="triangle"; }
+        if(type==="dash"){ f=420; dur=0.09; a=0.22; o.type="square"; }
+        if(type==="boss"){ f=140; dur=0.22; a=0.22; o.type="sawtooth"; }
+        if(type==="death"){ f=110; dur=0.28; a=0.26; o.type="sawtooth"; }
+        if(type==="ui"){ f=330; dur=0.07; a=0.16; o.type="square"; }
+        o.frequency.setValueAtTime(f, t0);
+        g0.gain.setValueAtTime(0, t0);
+        g0.gain.linearRampToValueAtTime(a, t0+0.01);
+        g0.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
+        o.connect(g0);
+        g0.connect(master);
+        o.start(t0);
+        o.stop(t0+dur+0.02);
+      }
+      return { ping, setEnabled, get enabled(){ return enabled; } };
+    })();
+
+    function uiMuteIcon(){
+      const i = UI.btnMute.querySelector("i");
+      if(!i) return;
+      i.className = SFX.enabled ? "fa-solid fa-volume-high" : "fa-solid fa-volume-xmark";
+    }
+    uiMuteIcon();
+
+    UI.btnMute.addEventListener("click", ()=>{
+      SFX.setEnabled(!SFX.enabled);
+      uiMuteIcon();
+      SFX.ping("ui");
+    });
+
+    UI.btnCredits.addEventListener("click", ()=>{
+      showCredits(true);
+      SFX.ping("ui");
+    });
+    UI.btnCloseCredits.addEventListener("click", ()=>{
+      showCredits(false);
+      SFX.ping("ui");
+    });
+
+    function showCredits(on){
+      UI.overlayCredits.classList.toggle("on", !!on);
+      UI.overlayCredits.setAttribute("aria-hidden", on? "false":"true");
+    }
+
+    UI.btnQuickRestart.addEventListener("click", ()=>{
+      hardRestart();
+      SFX.ping("ui");
+    });
+
+    function hardRestart(){
+      GAME.resetToHub(true);
+    }
+
+    function makeColor(rgb, a=1){
+      return `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${a})`;
+    }
+
+    function rect(g,x,y,w,h,fill){
+      g.fillStyle = fill;
+      g.fillRect(x|0,y|0,w|0,h|0);
+    }
+
+    function strokeRect(g,x,y,w,h,stroke){
+      g.strokeStyle = stroke;
+      g.strokeRect((x|0)+.5,(y|0)+.5,(w|0),(h|0));
+    }
+
+    function drawText(g, text, x, y, size=8, color="rgba(232,240,255,.92)", align="left"){
+      g.save();
+      g.fillStyle = color;
+      g.textAlign = align;
+      g.textBaseline = "top";
+      g.font = `${size}px ${CONFIG.tech.fontFallback}`;
+      g.fillText(text, x, y);
+      g.restore();
+    }
+
+    function drawPxText(g, text, x, y, size=8, color="rgba(232,240,255,.92)", align="left"){
+      g.save();
+      g.fillStyle = color;
+      g.textAlign = align;
+      g.textBaseline = "top";
+      g.font = `${size}px ${CONFIG.tech.fontFallback}`;
+      g.fillText(text, x, y);
+      g.restore();
+    }
+
+    function screenShake(intensity){
+      GAME.fx.shake = Math.max(GAME.fx.shake, intensity);
+    }
+
+    function spawnParticles(x,y, n, baseColor, kind="spark"){
+      const fx = GAME.fx;
+      for(let i=0;i<n;i++){
+        fx.particles.push({
+          x, y,
+          vx: rnd(-1,1)*rnd(20,70),
+          vy: rnd(-1,1)*rnd(20,70),
+          t: 0,
+          life: rnd(0.35, 0.75),
+          s: rnd(1.2, 2.6),
+          c: baseColor,
+          kind
+        });
+      }
+    }
+
+    class Camera{
+      constructor(){
+        this.x=0; this.y=0;
+        this.vx=0; this.vy=0;
+      }
+      update(dt, tx, ty){
+        const k = 16.0;
+        const dx = tx - this.x;
+        const dy = ty - this.y;
+        this.vx += dx * k * dt;
+        this.vy += dy * k * dt;
+        this.vx *= Math.pow(0.05, dt);
+        this.vy *= Math.pow(0.05, dt);
+        this.x += this.vx * dt;
+        this.y += this.vy * dt;
+      }
+    }
+
+    class Dungeon{
+      constructor(seed, stage, choiceMod){
+        this.seed = seed>>>0;
+        this.stage = stage;
+        this.choiceMod = choiceMod || { goldMul:1, xpMul:1, enemyMul:1, obstacleMul:1 };
+        this.rng = mulberry32(seed);
+        this.tw = 64;
+        this.th = 64;
+        this.tile = 8;
+        this.grid = new Uint8Array(this.tw*this.th);
+        this.rooms = [];
+        this.spawnPoints = [];
+        this.exit = { x:0, y:0, r: 10, active:true };
+        this.bossRoom = null;
+        this.decorate();
+      }
+
+      idx(x,y){ return x + y*this.tw; }
+      inb(x,y){ return x>=0 && y>=0 && x<this.tw && y<this.th; }
+
+      decorate(){
+        this.grid.fill(1);
+        const rng = this.rng;
+
+        const carve = (x,y)=>{
+          if(!this.inb(x,y)) return;
+          this.grid[this.idx(x,y)] = 0;
+        };
+
+        const makeRoom = (cx,cy,w,h)=>{
+          const x0 = clamp(cx - (w>>1), 2, this.tw-3-w);
+          const y0 = clamp(cy - (h>>1), 2, this.th-3-h);
+          const x1 = x0+w;
+          const y1 = y0+h;
+          for(let y=y0;y<y1;y++){
+            for(let x=x0;x<x1;x++) carve(x,y);
+          }
+          this.rooms.push({ x0,y0,x1,y1, cx: (x0+x1)/2, cy:(y0+y1)/2 });
+        };
+
+        const walkCarve = (sx,sy, steps)=>{
+          let x=sx, y=sy;
+          for(let i=0;i<steps;i++){
+            carve(x,y);
+            if(rng()<0.12) carve(x+1,y);
+            if(rng()<0.12) carve(x-1,y);
+            if(rng()<0.12) carve(x,y+1);
+            if(rng()<0.12) carve(x,y-1);
+            const d = Math.floor(rng()*4);
+            if(d===0) x++;
+            if(d===1) x--;
+            if(d===2) y++;
+            if(d===3) y--;
+            x = clamp(x, 2, this.tw-3);
+            y = clamp(y, 2, this.th-3);
+          }
+        };
+
+        const roomCount = clamp(7 + Math.floor(rng()*4) + Math.floor(this.stage*0.6), 8, 14);
+        for(let i=0;i<roomCount;i++){
+          const cx = 6 + Math.floor(rng()*(this.tw-12));
+          const cy = 6 + Math.floor(rng()*(this.th-12));
+          const w = 6 + Math.floor(rng()*10);
+          const h = 6 + Math.floor(rng()*9);
+          makeRoom(cx,cy,w,h);
+        }
+
+        for(let i=0;i<this.rooms.length-1;i++){
+          const a = this.rooms[i];
+          const b = this.rooms[i+1];
+          let x = a.cx|0, y=a.cy|0;
+          const tx = b.cx|0, ty=b.cy|0;
+          while(x!==tx){ carve(x,y); x += (tx>x)?1:-1; if(rng()<0.06) carve(x,y+((rng()<0.5)?1:-1)); }
+          while(y!==ty){ carve(x,y); y += (ty>y)?1:-1; if(rng()<0.06) carve(x+((rng()<0.5)?1:-1),y); }
+        }
+
+        const startRoom = this.rooms[0];
+        const endRoom = this.rooms[this.rooms.length-1];
+        walkCarve(startRoom.cx|0, startRoom.cy|0, 260 + Math.floor(rng()*120));
+        walkCarve(endRoom.cx|0, endRoom.cy|0, 170 + Math.floor(rng()*80));
+
+        for(let i=0;i<1200;i++){
+          const x = 2 + Math.floor(rng()*(this.tw-4));
+          const y = 2 + Math.floor(rng()*(this.th-4));
+          if(this.grid[this.idx(x,y)]===0 && rng()<0.06) carve(x,y);
+        }
+
+        this.bossRoom = this.rooms[Math.floor(this.rooms.length*0.72)] || endRoom;
+
+        const ex = clamp((endRoom.cx|0)*this.tile + this.tile*0.5, 20, this.tw*this.tile-20);
+        const ey = clamp((endRoom.cy|0)*this.tile + this.tile*0.5, 20, this.th*this.tile-20);
+        this.exit.x = ex;
+        this.exit.y = ey;
+
+        const sx = clamp((startRoom.cx|0)*this.tile + this.tile*0.5, 20, this.tw*this.tile-20);
+        const sy = clamp((startRoom.cy|0)*this.tile + this.tile*0.5, 20, this.th*this.tile-20);
+
+        for(let i=0;i<48;i++){
+          const r = this.rooms[Math.floor(rng()*this.rooms.length)];
+          const x = (r.cx|0)*this.tile + rnd(-14,14);
+          const y = (r.cy|0)*this.tile + rnd(-14,14);
+          this.spawnPoints.push({ x, y });
+        }
+
+        this.start = { x:sx, y:sy };
+
+        this.obstacles = [];
+        const obsCount = Math.floor((18 + this.stage*6) * (this.choiceMod.obstacleMul||1));
+        const obsKeys = Object.keys(CONFIG.obstacles);
+        for(let i=0;i<obsCount;i++){
+          const type = obsKeys[Math.floor(rng()*obsKeys.length)];
+          const r = this.rooms[Math.floor(rng()*this.rooms.length)];
+          const x = (r.cx|0)*this.tile + rnd(-24,24);
+          const y = (r.cy|0)*this.tile + rnd(-18,18);
+          if(Math.hypot(x-sx,y-sy)<28) continue;
+          if(Math.hypot(x-ex,y-ey)<30) continue;
+          if(!this.isWalkable(x,y)) continue;
+          this.obstacles.push({ type, x, y, r: type==="pillar"?10:8, hp: CONFIG.obstacles[type].hp });
+        }
+
+        this.items = [];
+        const earlyKit = clamp(SAVE.meta.kit|0, 0, 9);
+        for(let i=0;i<earlyKit;i++){
+          const x = sx + rnd(-18,18);
+          const y = sy + rnd(-18,18);
+          this.items.push({ kind:"potion", x, y, r: 8, ttl: 9999 });
+        }
+
+        this.hazards = [];
+      }
+
+      isWallTile(tx,ty){
+        if(tx<0||ty<0||tx>=this.tw||ty>=this.th) return true;
+        return this.grid[this.idx(tx,ty)]===1;
+      }
+
+      isWalkable(x,y){
+        const tx = Math.floor(x/this.tile);
+        const ty = Math.floor(y/this.tile);
+        if(this.isWallTile(tx,ty)) return false;
+        return true;
+      }
+
+      collideCircle(x,y,r){
+        const t = this.tile;
+        const tx0 = Math.floor((x-r)/t);
+        const ty0 = Math.floor((y-r)/t);
+        const tx1 = Math.floor((x+r)/t);
+        const ty1 = Math.floor((y+r)/t);
+        for(let ty=ty0; ty<=ty1; ty++){
+          for(let tx=tx0; tx<=tx1; tx++){
+            if(this.isWallTile(tx,ty)){
+              const rx = tx*t, ry=ty*t;
+              const cx = clamp(x, rx, rx+t);
+              const cy = clamp(y, ry, ry+t);
+              const d2 = (x-cx)*(x-cx)+(y-cy)*(y-cy);
+              if(d2 < r*r) return { hit:true, nx:x-cx, ny:y-cy, cx, cy, tx, ty };
+            }
+          }
+        }
+        return { hit:false };
+      }
+
+      collideObstaclesCircle(x,y,r){
+        let hit = null;
+        for(const o of this.obstacles){
+          const def = CONFIG.obstacles[o.type];
+          const rr = o.r;
+          const d = Math.hypot(x-o.x, y-o.y);
+          if(d < r + rr){
+            if(def.blocks){
+              hit = { o, nx:(x-o.x)/(d||1), ny:(y-o.y)/(d||1), pen:(r+rr)-d };
+              break;
+            }
+          }
+        }
+        return hit;
+      }
+
+      drawParallax(g, camX, camY, tsec){
+        const w = off.width, h = off.height;
+
+        const layer = (speed, alpha, shade)=>{
+          const ox = (-camX*speed + tsec*12*speed) % 64;
+          const oy = (-camY*speed + tsec*9*speed) % 64;
+          g.save();
+          g.globalAlpha = alpha;
+          for(let y=-64;y<h+64;y+=64){
+            for(let x=-64;x<w+64;x+=64){
+              const xx = x + ox;
+              const yy = y + oy;
+              g.fillStyle = shade;
+              g.fillRect(xx, yy, 64, 64);
+              g.fillStyle = "rgba(255,255,255,.04)";
+              for(let i=0;i<8;i++){
+                const px = xx + (i*7 + ((yy|0)&7))%60 + 2;
+                const py = yy + (i*9 + ((xx|0)&11))%60 + 2;
+                g.fillRect(px, py, 2, 2);
+              }
+            }
+          }
+          g.restore();
+        };
+
+        layer(0.10, 0.35, "rgba(122,167,255,.06)");
+        layer(0.18, 0.28, "rgba(179,122,255,.05)");
+        layer(0.26, 0.22, "rgba(88,226,106,.04)");
+      }
+
+      drawTiles(g, camX, camY){
+        const t = this.tile;
+        const w = off.width, h = off.height;
+
+        const x0 = Math.floor(camX/t);
+        const y0 = Math.floor(camY/t);
+        const x1 = Math.floor((camX+w)/t)+1;
+        const y1 = Math.floor((camY+h)/t)+1;
+
+        for(let ty=y0; ty<=y1; ty++){
+          for(let tx=x0; tx<=x1; tx++){
+            const x = tx*t - camX;
+            const y = ty*t - camY;
+            const isWall = this.isWallTile(tx,ty);
+            if(isWall){
+              g.fillStyle = "rgba(12,16,26,.95)";
+              g.fillRect(x,y,t,t);
+              g.fillStyle = "rgba(255,255,255,.04)";
+              g.fillRect(x+1,y+1,t-2,t-2);
+              g.fillStyle = "rgba(0,0,0,.28)";
+              g.fillRect(x+1,y+1,t-2,1);
+              g.fillRect(x+1,y+1,1,t-2);
+            }else{
+              g.fillStyle = "rgba(18,26,43,.86)";
+              g.fillRect(x,y,t,t);
+              const n = ((tx*73856093)^(ty*19349663)^(this.seed*83492791))>>>0;
+              const v = (n%9)/90;
+              g.fillStyle = `rgba(255,255,255,${0.02+v})`;
+              g.fillRect(x+2,y+2,1,1);
+              if(((n>>3)&7)===0){
+                g.fillStyle = "rgba(0,0,0,.18)";
+                g.fillRect(x+1,y+t-2,t-2,1);
+              }
+            }
+          }
+        }
+
+        for(const o of this.obstacles){
+          const def = CONFIG.obstacles[o.type];
+          const x = o.x - camX;
+          const y = o.y - camY;
+          if(x<-24||y<-24||x>w+24||y>h+24) continue;
+
+          if(o.type==="spikes"){
+            g.fillStyle = "rgba(255,90,122,.18)";
+            g.fillRect(x-8,y-8,16,16);
+            g.fillStyle = "rgba(255,90,122,.70)";
+            for(let i=0;i<4;i++){
+              g.fillRect(x-7+i*4, y+4, 3, 3);
+              g.fillRect(x-7+i*4, y-7, 3, 3);
+            }
+          }else if(o.type==="pit"){
+            g.fillStyle = "rgba(0,0,0,.55)";
+            g.fillRect(x-9,y-7,18,14);
+            g.fillStyle = "rgba(122,167,255,.08)";
+            g.fillRect(x-8,y-6,16,12);
+          }else{
+            const base = o.type==="barrel" ? "rgba(255,207,90,.16)" : (o.type==="pillar" ? "rgba(122,167,255,.14)" : "rgba(255,255,255,.09)");
+            g.fillStyle = base;
+            const rr = o.r;
+            g.fillRect(x-rr,y-rr,rr*2,rr*2);
+            g.fillStyle = "rgba(0,0,0,.18)";
+            g.fillRect(x-rr,y+rr-2,rr*2,2);
+            g.fillStyle = "rgba(255,255,255,.06)";
+            g.fillRect(x-rr+2,y-rr+2,rr*2-4,2);
+          }
+        }
+
+        if(this.exit.active){
+          const x = this.exit.x - camX;
+          const y = this.exit.y - camY;
+          g.save();
+          g.globalAlpha = 0.9;
+          g.fillStyle = "rgba(122,167,255,.18)";
+          g.fillRect(x-10,y-10,20,20);
+          g.fillStyle = "rgba(122,167,255,.78)";
+          g.fillRect(x-6,y-6,12,12);
+          g.globalAlpha = 0.8;
+          g.fillStyle = "rgba(179,122,255,.72)";
+          g.fillRect(x-2,y-2,4,4);
+          g.restore();
+        }
+      }
+    }
+
+    class Entity{
+      constructor(x,y,r){
+        this.x=x; this.y=y; this.r=r;
+        this.vx=0; this.vy=0;
+        this.hp=1; this.maxHP=1;
+        this.dead=false;
+        this.flash=0;
+      }
+      damage(amount){
+        this.hp -= amount;
+        this.flash = 0.12;
+        if(this.hp<=0){ this.dead=true; }
+      }
+    }
+
+    class Player extends Entity{
+      constructor(x,y, hero){
+        super(x,y,3);
+        this.hero = hero;
+        this.palette = CONFIG.heroMaker.palettes.find(p=>p.id===hero.palette) || CONFIG.heroMaker.palettes[0];
+
+        const arm = CONFIG.armors[hero.armor] || CONFIG.armors.cloth;
+        const tri = CONFIG.trinkets[hero.trinket] || CONFIG.trinkets.none;
+
+        this.stats = {
+          maxHP: CONFIG.player.base.maxHP + (arm.hp||0) + (tri.mp?0:0) + (SAVE.meta.baseHP||0),
+          maxMP: CONFIG.player.base.maxMP + (tri.mp||0),
+          speed: CONFIG.player.base.speed + (arm.speed||0),
+          dr: (arm.dr||0),
+          luck: (tri.luck||0),
+          goldMul: 1 + (tri.gold||0),
+          xpMul: 1 + (tri.xp||0),
+          dmgMul: 1,
+          mpRegen: CONFIG.player.combat.regenMPPerSec,
+          dashCDMul: 1,
+          healOnKill: 0,
+          manaOnKill: 0
+        };
+
+        this.hp = this.stats.maxHP;
+        this.mp = this.stats.maxMP;
+
+        this.weapon = hero.weapon;
+        this.focus = hero.focus;
+
+        this.gold = 0;
+        this.xp = 0;
+        this.level = 1;
+        this.skillPoints = (SAVE.meta.startSkill||0);
+        this.runSkills = {
+          vitality:0,
+          mana:0,
+          dash:0,
+          blade:0,
+          arcane:0,
+          ranger:0,
+          lucky:0
+        };
+
+        this.iTime = 0;
+        this.dashing = 0;
+        this.dashCD = 0;
+        this.attackCD = 0;
+        this.facing = { x:1, y:0 };
+
+        this.consumables = { potion:0, ether:0 };
+        this.consumables.potion = 1;
+        this.consumables.ether = 0;
+
+        this.trail = [];
+      }
+
+      getWeaponDef(){ return CONFIG.weapons[this.weapon] || CONFIG.weapons.sword; }
+
+      addGold(n){ this.gold += n|0; }
+      addXP(n){
+        this.xp += n|0;
+        while(this.xp >= this.xpToNext()){
+          this.xp -= this.xpToNext();
+          this.level++;
+          this.skillPoints++;
+          GAME.queueLevelUp();
+          SFX.ping("xp");
+        }
+      }
+      xpToNext(){
+        return Math.floor(32 + (this.level-1)*14 + Math.pow(this.level-1,1.25)*6);
+      }
+
+      heal(n){
+        this.hp = Math.min(this.stats.maxHP, this.hp + n);
+      }
+      mana(n){
+        this.mp = Math.min(this.stats.maxMP, this.mp + n);
+      }
+
+      dashReady(){ return this.dashCD<=0 && this.dashing<=0; }
+
+      tryDash(){
+        if(!this.dashReady()) return false;
+        this.dashing = CONFIG.player.dash.duration;
+        this.dashCD = (CONFIG.player.dash.cooldown + (SAVE.meta.dashCD||0)) * this.stats.dashCDMul;
+        this.iTime = Math.max(this.iTime, CONFIG.player.dash.iFrames);
+        SFX.ping("dash");
+        spawnParticles(this.x,this.y, 10, this.palette.trim, "dash");
+        screenShake(0.7);
+        return true;
+      }
+
+      update(dt, dungeon){
+        this.attackCD = Math.max(0, this.attackCD - dt);
+        this.dashing = Math.max(0, this.dashing - dt);
+        this.dashCD = Math.max(0, this.dashCD - dt);
+        this.iTime = Math.max(0, this.iTime - dt);
+        this.flash = Math.max(0, this.flash - dt);
+
+        const mpRegen = (this.stats.mpRegen||0) * (1 + this.runSkills.mana*0.06);
+        this.mp = Math.min(this.stats.maxMP, this.mp + mpRegen*dt);
+
+        let ax=0, ay=0;
+        if(isDown("w","W","ArrowUp")) ay -= 1;
+        if(isDown("s","S","ArrowDown")) ay += 1;
+        if(isDown("a","A","ArrowLeft")) ax -= 1;
+        if(isDown("d","D","ArrowRight")) ax += 1;
+
+        const len = Math.hypot(ax,ay) || 1;
+        ax/=len; ay/=len;
+
+        if(ax||ay){
+          this.facing.x = lerp(this.facing.x, ax, 0.25);
+          this.facing.y = lerp(this.facing.y, ay, 0.25);
+          const fl = Math.hypot(this.facing.x, this.facing.y)||1;
+          this.facing.x/=fl; this.facing.y/=fl;
+        }
+
+        const spdBase = this.stats.speed * (1 + this.runSkills.dash*0.02);
+        const dashMul = this.dashing>0 ? CONFIG.player.dash.speedMul*(1 + this.runSkills.dash*0.05) : 1;
+        const spd = spdBase * dashMul;
+
+        const tx = ax*spd;
+        const ty = ay*spd;
+
+        this.vx = lerp(this.vx, tx, 0.18);
+        this.vy = lerp(this.vy, ty, 0.18);
+
+        let nx = this.x + this.vx*dt;
+        let ny = this.y + this.vy*dt;
+
+        const c = dungeon.collideCircle(nx, ny, this.r);
+        if(c.hit){
+          const d = Math.hypot(c.nx,c.ny) || 1;
+          const px = (c.nx/d) * (this.r - Math.sqrt(Math.max(0,(nx-c.cx)*(nx-c.cx)+(ny-c.cy)*(ny-c.cy))) + 0.6);
+          const py = (c.ny/d) * (this.r - Math.sqrt(Math.max(0,(nx-c.cx)*(nx-c.cx)+(ny-c.cy)*(ny-c.cy))) + 0.6);
+          nx += px;
+          ny += py;
+          this.vx *= 0.35;
+          this.vy *= 0.35;
+        }
+
+        const oh = dungeon.collideObstaclesCircle(nx, ny, this.r);
+        if(oh && oh.o){
+          nx += oh.nx * oh.pen;
+          ny += oh.ny * oh.pen;
+          this.vx *= 0.35;
+          this.vy *= 0.35;
+        }
+
+        this.x = nx; this.y = ny;
+
+        this.trail.push({ x:this.x, y:this.y, t:0 });
+        for(const t0 of this.trail) t0.t += dt;
+        this.trail = this.trail.filter(p=>p.t<0.22);
+      }
+
+      hurt(amount, kind="hit"){
+        if(this.iTime>0) return false;
+        this.iTime = CONFIG.player.base.iFrames;
+        const dr = clamp(this.stats.dr, 0, 0.6);
+        const dmg = Math.max(1, Math.floor(amount*(1-dr)));
+        this.hp -= dmg;
+        this.flash = 0.14;
+        screenShake(1.2);
+        spawnParticles(this.x,this.y, 14, this.palette.accent, "hit");
+        SFX.ping("hit");
+        if(this.hp<=0){
+          this.hp = 0;
+          this.dead = true;
+          SFX.ping("death");
+        }
+        return true;
+      }
+
+      tryAttack(){
+        if(this.attackCD>0) return false;
+        const w = this.getWeaponDef();
+        this.attackCD = w.rate * (1 - this.runSkills.blade*0.02 - this.runSkills.ranger*0.02 - this.runSkills.arcane*0.02);
+        if(w.mpCost>0){
+          if(this.mp < w.mpCost) return false;
+          this.mp -= w.mpCost;
+        }
+        if(this.weapon==="sword"){
+          GAME.spawnSlash(this);
+        }else{
+          GAME.spawnShot(this, w);
+        }
+        return true;
+      }
+
+      useConsumable(kind){
+        if(kind==="potion" && this.consumables.potion>0){
+          this.consumables.potion--;
+          this.heal(34 + this.runSkills.vitality*4);
+          spawnParticles(this.x,this.y, 12, this.palette.body, "heal");
+          SFX.ping("xp");
+          return true;
+        }
+        if(kind==="ether" && this.consumables.ether>0){
+          this.consumables.ether--;
+          this.mana(30 + this.runSkills.mana*4);
+          spawnParticles(this.x,this.y, 12, this.palette.trim, "heal");
+          SFX.ping("xp");
+          return true;
+        }
+        return false;
+      }
+    }
+
+    class Enemy extends Entity{
+      constructor(x,y, type, stageScale, rng){
+        super(x,y,4);
+        this.type = type;
+        this.kind = type.kind;
+        this.baseColor = type.color;
+        this.rng = rng;
+        this.aiT = 0;
+        this.shootCD = rnd(0.8, 0.1);
+        this.maxHP = Math.floor(type.hp * stageScale.hp);
+        this.hp = this.maxHP;
+        this.spd = type.spd * stageScale.spd;
+        this.dmg = Math.floor(type.dmg * stageScale.dmg);
+        this.xp = Math.floor(type.xp * stageScale.xp);
+        this.gold = type.gold;
+        this.stagger = 0;
+      }
+      update(dt, dungeon, player, stageScale){
+        this.flash = Math.max(0, this.flash - dt);
+        this.stagger = Math.max(0, this.stagger - dt);
+        this.aiT += dt;
+
+        const dx = player.x - this.x;
+        const dy = player.y - this.y;
+        const d = Math.hypot(dx,dy) || 1;
+        const nx = dx/d, ny = dy/d;
+
+        let desiredX = 0, desiredY = 0;
+
+        if(this.kind==="melee"){
+          desiredX = nx * this.spd;
+          desiredY = ny * this.spd;
+        }else{
+          const prefer = 62 + stageScale.stage*2;
+          const away = d < prefer ? -1 : (d>prefer+22 ? 1 : 0);
+          desiredX = nx * this.spd * away;
+          desiredY = ny * this.spd * away;
+          this.shootCD -= dt;
+          if(this.shootCD<=0){
+            this.shootCD = (this.type.proj?.rate || 1.4) * (0.92 + this.rng()*0.22);
+            GAME.spawnEnemyShot(this, player, stageScale);
+          }
+        }
+
+        if(this.type.id==="bat"){
+          const wob = Math.sin(this.aiT*6 + this.x*0.02)*0.65;
+          desiredX += -ny * wob * this.spd * 0.55;
+          desiredY += nx * wob * this.spd * 0.55;
+        }
+
+        const k = this.stagger>0 ? 0.08 : 0.16;
+        this.vx = lerp(this.vx, desiredX, k);
+        this.vy = lerp(this.vy, desiredY, k);
+
+        let nxp = this.x + this.vx*dt;
+        let nyp = this.y + this.vy*dt;
+
+        const c = dungeon.collideCircle(nxp, nyp, this.r);
+        if(c.hit){
+          this.vx *= -0.25;
+          this.vy *= -0.25;
+          nxp = this.x + this.vx*dt;
+          nyp = this.y + this.vy*dt;
+        }
+        const oh = dungeon.collideObstaclesCircle(nxp, nyp, this.r);
+        if(oh && oh.o){
+          nxp += oh.nx * oh.pen;
+          nyp += oh.ny * oh.pen;
+          this.vx *= 0.35;
+          this.vy *= 0.35;
+        }
+
+        this.x = nxp; this.y = nyp;
+      }
+      hit(amount, knockX, knockY){
+        this.damage(amount);
+        this.stagger = 0.12;
+        this.vx += knockX;
+        this.vy += knockY;
+      }
+    }
+
+    class Boss extends Entity{
+      constructor(x,y, stage, kind, stageScale, rng){
+        super(x,y,12);
+        this.stage = stage;
+        this.kind = kind;
+        this.rng = rng;
+        this.t=0;
+        this.phase = 1;
+        this.inv = 0;
+        this.action = 0;
+        this.cd = 0.8;
+        this.teleCD = 1.4;
+        this.summonCD = 2.6;
+        this.maxHP = Math.floor((kind==="golem"? 520 : 720) * stageScale.bossHP);
+        this.hp = this.maxHP;
+        this.dmg = Math.floor((kind==="golem"? 18 : 16) * stageScale.bossDMG);
+        this.spd = (kind==="golem"? 38 : 46) * stageScale.spd;
+        this.name = kind==="golem" ? "Stone Golem" : "Lich King";
+      }
+      update(dt, dungeon, player, stageScale){
+        this.flash = Math.max(0, this.flash - dt);
+        this.inv = Math.max(0, this.inv - dt);
+        this.t += dt;
+
+        const hpRatio = this.hp/this.maxHP;
+        this.phase = hpRatio<0.55 ? 2 : 1;
+
+        const dx = player.x - this.x;
+        const dy = player.y - this.y;
+        const d = Math.hypot(dx,dy) || 1;
+        const nx = dx/d, ny = dy/d;
+
+        if(this.kind==="golem"){
+          this.cd -= dt;
+          if(this.cd<=0){
+            if(this.phase===1){
+              this.cd = 1.2 + this.rng()*0.35;
+              GAME.bossSlam(this, player, 1);
+            }else{
+              this.cd = 0.92 + this.rng()*0.25;
+              GAME.bossSlam(this, player, 2);
+              this.summonCD -= dt*2.0;
+            }
+          }
+          this.summonCD -= dt;
+          if(this.phase===2 && this.summonCD<=0){
+            this.summonCD = 2.2 + this.rng()*0.6;
+            GAME.bossSummon(this, stageScale);
+          }
+          const chase = d>26 ? 1 : 0;
+          this.vx = lerp(this.vx, nx*this.spd*chase, 0.08);
+          this.vy = lerp(this.vy, ny*this.spd*chase, 0.08);
+        }else{
+          this.cd -= dt;
+          this.teleCD -= dt;
+
+          if(this.teleCD<=0){
+            this.teleCD = (this.phase===1? 2.0 : 1.4) + this.rng()*0.6;
+            const ang = this.rng()*TAU;
+            const dist = 54 + this.rng()*38;
+            const tx = player.x + Math.cos(ang)*dist;
+            const ty = player.y + Math.sin(ang)*dist;
+            if(dungeon.isWalkable(tx,ty)){
+              spawnParticles(this.x,this.y, 18, [179,122,255], "dash");
+              this.x = tx; this.y = ty;
+              spawnParticles(this.x,this.y, 18, [122,167,255], "dash");
+              screenShake(1.0);
+              this.inv = 0.18;
+            }
+          }
+
+          if(this.cd<=0){
+            if(this.phase===1){
+              this.cd = 1.05 + this.rng()*0.30;
+              GAME.bossBurst(this, player, 8, 0.10);
+            }else{
+              this.cd = 0.82 + this.rng()*0.22;
+              GAME.bossBurst(this, player, 12, 0.14);
+              if(this.rng()<0.35) GAME.bossRing(this, 14, 0.0);
+            }
+          }
+
+          const prefer = this.phase===1 ? 84 : 62;
+          const away = d < prefer ? -1 : (d>prefer+18 ? 1 : 0);
+          this.vx = lerp(this.vx, nx*this.spd*away, 0.12);
+          this.vy = lerp(this.vy, ny*this.spd*away, 0.12);
+        }
+
+        let nxp = this.x + this.vx*dt;
+        let nyp = this.y + this.vy*dt;
+        const c = dungeon.collideCircle(nxp, nyp, this.r);
+        if(c.hit){
+          this.vx *= -0.25;
+          this.vy *= -0.25;
+          nxp = this.x + this.vx*dt;
+          nyp = this.y + this.vy*dt;
+        }
+        const oh = dungeon.collideObstaclesCircle(nxp, nyp, this.r);
+        if(oh && oh.o){
+          nxp += oh.nx * oh.pen;
+          nyp += oh.ny * oh.pen;
+          this.vx *= 0.35;
+          this.vy *= 0.35;
+        }
+        this.x = nxp; this.y = nyp;
+      }
+      take(amount){
+        if(this.inv>0) return false;
+        this.damage(amount);
+        return true;
+      }
+    }
+
+    class Projectile{
+      constructor(x,y,vx,vy,r, dmg, owner, color, pierce=0){
+        this.x=x; this.y=y;
+        this.vx=vx; this.vy=vy;
+        this.r=r;
+        this.dmg=dmg;
+        this.owner=owner;
+        this.color=color;
+        this.pierce=pierce|0;
+        this.dead=false;
+        this.t=0;
+      }
+      update(dt, dungeon){
+        this.t += dt;
+        this.x += this.vx*dt;
+        this.y += this.vy*dt;
+        const c = dungeon.collideCircle(this.x,this.y,this.r);
+        if(c.hit) this.dead=true;
+        if(this.t>4.2) this.dead=true;
+      }
+    }
+
+    class Slash{
+      constructor(px,py, fx,fy, dmg, range, arc, color){
+        this.x=px; this.y=py;
+        this.fx=fx; this.fy=fy;
+        this.dmg=dmg;
+        this.range=range;
+        this.arc=arc;
+        this.color=color;
+        this.t=0;
+        this.dead=false;
+        this.hitSet = new Set();
+      }
+      update(dt){
+        this.t += dt;
+        if(this.t>0.10) this.dead=true;
+      }
+      sampleHits(entities){
+        const t = this.t;
+        const a0 = Math.atan2(this.fy,this.fx);
+        const swing = (t/0.10);
+        const ang = a0 + (swing-0.5)*this.arc;
+        const sx = this.x + Math.cos(ang)*this.range;
+        const sy = this.y + Math.sin(ang)*this.range;
+        for(const e of entities){
+          if(e.dead) continue;
+          if(this.hitSet.has(e)) continue;
+          const d = Math.hypot(e.x-sx, e.y-sy);
+          if(d < e.r + 10){
+            this.hitSet.add(e);
+            return e;
+          }
+        }
+        return null;
+      }
+    }
+
+    const GAME = {
+      state: "HUB",
+      paused: false,
+      dt: 0,
+      t0: now(),
+      t: 0,
+      runTime: 0,
+      score: 0,
+      stage: 1,
+      stageChoice: null,
+      stageMods: { goldMul:1, xpMul:1, enemyMul:1, obstacleMul:1 },
+      seed: 1,
+      dungeon: null,
+      cam: new Camera(),
+      player: null,
+      enemies: [],
+      boss: null,
+      projs: [],
+      slashes: [],
+      drops: [],
+      fx: {
+        shake: 0,
+        particles: [],
+        flash: 0,
+        vignette: 0
+      },
+      ui: {
+        subMode: null,
+        subSel: 0,
+        subData: null
+      },
+      history: {
+        upgrades: [],
+        choices: [],
+        bossesDefeated: 0
+      },
+      stageSpawn: {
+        t:0,
+        next:1.0
+      },
+
+      resetToHub(fromButton=false){
+        this.paused = false;
+        this.state = "HUB";
+        this.runTime = 0;
+        this.score = 0;
+        this.stage = 1;
+        this.stageChoice = null;
+        this.stageMods = { goldMul:1, xpMul:1, enemyMul:1, obstacleMul:1 };
+        this.seed = ((Date.now() & 0xffffffff) ^ (Math.floor(Math.random()*1e9)) ^ CONFIG.game.seedSalt)>>>0;
+        this.enemies = [];
+        this.boss = null;
+        this.projs = [];
+        this.slashes = [];
+        this.drops = [];
+        this.fx.shake = 0;
+        this.fx.particles = [];
+        this.fx.flash = 0;
+        this.fx.vignette = 0;
+        this.history = { upgrades: [], choices: [], bossesDefeated: 0 };
+
+        computeMetaDerived();
+
+        this.player = new Player(0,0, SAVE.hero);
+        this.player.addGold(SAVE.meta.startGold|0);
+        this.dungeon = new Dungeon(this.seed ^ (this.stage*7919), this.stage, this.stageMods);
+        this.player.x = this.dungeon.start.x;
+        this.player.y = this.dungeon.start.y;
+
+        this.stageSpawn.t = 0;
+        this.stageSpawn.next = 0.9;
+
+        UI.overlayMain.classList.add("on");
+        UI.overlayMain.setAttribute("aria-hidden","false");
+        UI.overlaySub.classList.remove("on");
+        UI.overlaySub.setAttribute("aria-hidden","true");
+        UI.hudState.textContent = "HUB";
+        UI.txtRunNote.textContent = "Space: Start • E: Interact";
+        UI.ovTitle.textContent = "HUB";
+        UI.ovDesc.textContent = "Customize your pixel hero, spend meta essence, then press Space to begin the run.";
+        UI.btnStart.disabled = false;
+        UI.btnStart.querySelector("span").textContent = "Start (Space)";
+        UI.hudName.textContent = SAVE.hero.name || "HERO";
+        UI.txtMeta.textContent = `${SAVE.meta.essence|0} ✦`;
+        updateSlots(SAVE.hero);
+        if(fromButton) screenShake(0.4);
+      },
+
+      startRun(){
+        if(this.state!=="HUB" && this.state!=="GAMEOVER" && this.state!=="VICTORY") return;
+        this.paused = false;
+        this.state = "RUN";
+        this.runTime = 0;
+        this.score = 0;
+        this.stage = 1;
+        this.stageMods = { goldMul:1, xpMul:1, enemyMul:1, obstacleMul:1 };
+        this.stageChoice = null;
+        this.enemies = [];
+        this.boss = null;
+        this.projs = [];
+        this.slashes = [];
+        this.drops = [];
+        this.fx.particles = [];
+        this.fx.shake = 0;
+        this.fx.flash = 0;
+        this.fx.vignette = 0;
+        this.history = { upgrades: [], choices: [], bossesDefeated: 0 };
+
+        this.seed = ((Date.now() & 0xffffffff) ^ (Math.floor(Math.random()*1e9)) ^ CONFIG.game.seedSalt)>>>0;
+
+        this.player = new Player(0,0, SAVE.hero);
+        this.player.addGold(SAVE.meta.startGold|0);
+
+        this.dungeon = new Dungeon(this.seed ^ (this.stage*7919), this.stage, this.stageMods);
+        this.player.x = this.dungeon.start.x;
+        this.player.y = this.dungeon.start.y;
+
+        this.stageSpawn.t = 0;
+        this.stageSpawn.next = 0.7;
+
+        UI.overlayMain.classList.remove("on");
+        UI.overlayMain.setAttribute("aria-hidden","true");
+        UI.overlaySub.classList.remove("on");
+        UI.overlaySub.setAttribute("aria-hidden","true");
+        UI.hudState.textContent = "RUN";
+        UI.txtRunNote.textContent = "Space: Pause • E: Interact";
+        UI.hudName.textContent = SAVE.hero.name || "HERO";
+        updateSlots(SAVE.hero);
+        SFX.ping("ui");
+      },
+
+      togglePause(){
+        if(this.state==="RUN"){
+          this.paused = !this.paused;
+          UI.hudState.textContent = this.paused ? "PAUSED" : "RUN";
+          UI.overlayMain.classList.toggle("on", this.paused);
+          UI.overlayMain.setAttribute("aria-hidden", this.paused ? "false":"true");
+          if(this.paused){
+            UI.ovTitle.textContent = "PAUSED";
+            UI.ovDesc.textContent = "Press Space to resume. Your score is based only on time survived.";
+            UI.hubGrid.style.display = "none";
+            UI.btnStart.querySelector("span").textContent = "Resume (Space)";
+            UI.btnStart.disabled = false;
+            UI.txtRunNote.textContent = "Space: Resume • R: Restart";
+          }else{
+            UI.hubGrid.style.display = "";
+            UI.btnStart.querySelector("span").textContent = "Start (Space)";
+            UI.txtRunNote.textContent = "Space: Pause • E: Interact";
+          }
+          SFX.ping("ui");
+        }else if(this.state==="HUB"){
+          this.startRun();
+        }else if(this.state==="GAMEOVER" || this.state==="VICTORY"){
+          this.resetToHub(false);
+        }
+      },
+
+      queueLevelUp(){
+        if(this.state!=="RUN") return;
+        this.state = "LEVELUP";
+        this.paused = true;
+        this.showLevelUpOverlay();
+      },
+
+      showLevelUpOverlay(){
+        const picks = [];
+        const pool = CONFIG.runUpgrades.slice();
+        const rng = mulberry32((this.seed ^ (this.player.level*977) ^ (this.stage*131))>>>0);
+        while(picks.length<3 && pool.length){
+          const i = Math.floor(rng()*pool.length);
+          picks.push(pool.splice(i,1)[0]);
+        }
+        this.ui.subMode = "LEVELUP";
+        this.ui.subSel = 0;
+        this.ui.subData = { picks };
+
+        UI.overlaySub.classList.add("on");
+        UI.overlaySub.setAttribute("aria-hidden","false");
+
+        const html = [];
+        html.push(`<h2><i class="fa-solid fa-circle-up"></i> Level Up! (Lv ${this.player.level})</h2>`);
+        html.push(`<p>Choose <b>one</b> upgrade. Use <b>A/D</b> (or ←/→) to select, then <b>E</b> to confirm.</p>`);
+        html.push(`<div class="grid3" id="subGrid">`);
+        picks.forEach((u,idx)=>{
+          html.push(`<div class="card ${idx===0?"sel":""}" data-idx="${idx}" tabindex="0">
+            <h3><i class="fa-solid ${u.icon}"></i><span>${u.name}</span></h3>
+            <div class="desc">${u.desc}</div>
+            <div class="pill">${idx===0?"Selected":"Pick"}</div>
+          </div>`);
+        });
+        html.push(`</div>`);
+        html.push(`<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap;">
+          <div class="smallnote">Skill Points: <b>${this.player.skillPoints}</b> (spent in Skill Tree at Shrines in-dungeon)</div>
+          <div style="display:flex;gap:10px;">
+            <button type="button" id="btnAutoPick"><i class="fa-solid fa-wand-sparkles"></i><span>Auto-pick (E)</span></button>
+          </div>
+        </div>`);
+        UI.toastSub.innerHTML = html.join("");
+
+        const grid = UI.toastSub.querySelector("#subGrid");
+        grid.addEventListener("click",(e)=>{
+          const card = e.target.closest(".card");
+          if(!card) return;
+          const idx = +card.getAttribute("data-idx");
+          this.ui.subSel = idx;
+          this.refreshSubSelection();
+          SFX.ping("ui");
+        });
+
+        UI.toastSub.querySelector("#btnAutoPick").addEventListener("click", ()=>{
+          this.confirmSubSelection();
+          SFX.ping("ui");
+        });
+
+        this.refreshSubSelection();
+      },
+
+      showStageChoice(){
+        const rng = mulberry32((this.seed ^ (this.stage*99991) ^ 0xC0FFEE)>>>0);
+        const opts = [];
+        const pool = CONFIG.stageChoices.slice();
+        while(opts.length<2 && pool.length){
+          const i = Math.floor(rng()*pool.length);
+          opts.push(pool.splice(i,1)[0]);
+        }
+        this.ui.subMode = "STAGECHOICE";
+        this.ui.subSel = 0;
+        this.ui.subData = { opts };
+
+        this.state = "STAGECHOICE";
+        this.paused = true;
+
+        UI.overlaySub.classList.add("on");
+        UI.overlaySub.setAttribute("aria-hidden","false");
+
+        const html = [];
+        html.push(`<h2><i class="fa-solid fa-road"></i> Stage Clear! Choose your path</h2>`);
+        html.push(`<p>Two routes ahead. Use <b>A/D</b> (or ←/→) to select, then <b>E</b> to proceed to Stage ${this.stage+1}.</p>`);
+        html.push(`<div class="grid2" id="subGrid">`);
+        opts.forEach((o,idx)=>{
+          html.push(`<div class="card ${idx===0?"sel":""}" data-idx="${idx}" tabindex="0">
+            <h3><i class="fa-solid ${o.icon}"></i><span>${o.name}</span></h3>
+            <div class="desc">${o.desc}</div>
+            <div class="pill">${idx===0?"Selected":"Pick"}</div>
+          </div>`);
+        });
+        html.push(`</div>`);
+        html.push(`<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap;">
+          <div class="smallnote">Boss encounters at Stage 4 and 8. Score is time survived only.</div>
+          <div class="smallnote">Tip: Press <b>Space</b> to pause anytime.</div>
+        </div>`);
+        UI.toastSub.innerHTML = html.join("");
+
+        const grid = UI.toastSub.querySelector("#subGrid");
+        grid.addEventListener("click",(e)=>{
+          const card = e.target.closest(".card");
+          if(!card) return;
+          const idx = +card.getAttribute("data-idx");
+          this.ui.subSel = idx;
+          this.refreshSubSelection();
+          SFX.ping("ui");
+        });
+
+        this.refreshSubSelection();
+      },
+
+      showHeroMaker(){
+        this.ui.subMode = "HEROMAKER";
+        this.ui.subSel = 0;
+
+        const pal = CONFIG.heroMaker.palettes;
+        const wkeys = Object.keys(CONFIG.weapons);
+        const akeys = Object.keys(CONFIG.armors);
+        const tkeys = Object.keys(CONFIG.trinkets);
+        const focus = ["blade","ranger","arcane"];
+
+        const cur = SAVE.hero;
+
+        const palIdx = Math.max(0, pal.findIndex(p=>p.id===cur.palette));
+        const wIdx = Math.max(0, wkeys.indexOf(cur.weapon));
+        const aIdx = Math.max(0, akeys.indexOf(cur.armor));
+        const tIdx = Math.max(0, tkeys.indexOf(cur.trinket));
+        const fIdx = Math.max(0, focus.indexOf(cur.focus));
+
+        this.ui.subData = {
+          palIdx, wIdx, aIdx, tIdx, fIdx,
+          name: cur.name || "HERO"
+        };
+
+        UI.overlaySub.classList.add("on");
+        UI.overlaySub.setAttribute("aria-hidden","false");
+
+        const render = ()=>{
+          const d = this.ui.subData;
+          const p = pal[d.palIdx];
+          const w = CONFIG.weapons[wkeys[d.wIdx]];
+          const a = CONFIG.armors[akeys[d.aIdx]];
+          const t = CONFIG.trinkets[tkeys[d.tIdx]];
+          const f = focus[d.fIdx];
+
+          const colorSwatch = (rgb)=>`<span style="display:inline-block;width:14px;height:14px;border-radius:5px;border:1px solid rgba(255,255,255,.16);background:${makeColor(rgb,.95)};vertical-align:middle;"></span>`;
+          const html = [];
+          html.push(`<h2><i class="fa-solid fa-user-astronaut"></i> Hero Maker</h2>`);
+          html.push(`<p>Use <b>A/D</b> (or ←/→) to cycle the focused row, <b>W/S</b> (or ↑/↓) to change value, then <b>E</b> to apply. Name is auto from your current save (edit via on-screen field).</p>`);
+          html.push(`<div class="grid2">`);
+
+          html.push(`<div class="card sel" style="cursor:default">
+            <h3><i class="fa-solid fa-palette"></i><span>Palette</span></h3>
+            <div class="desc">
+              <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                <b class="hint">${p.name}</b>
+                ${colorSwatch(p.body)} ${colorSwatch(p.accent)} ${colorSwatch(p.trim)}
+              </div>
+              <div class="smallnote" style="margin-top:8px;">Body/Accent/Trim colors used for pixel hero and effects.</div>
+            </div>
+            <div class="pill">Row 1</div>
+          </div>`);
+
+          html.push(`<div class="card" style="cursor:default">
+            <h3><i class="fa-solid ${w.icon}"></i><span>Starting Weapon</span></h3>
+            <div class="desc">
+              <b class="hint">${w.name}</b><br>
+              Rate ${w.rate.toFixed(2)}s • Dmg ${w.dmg} • ${cur.weapon==="sword"?"Melee arc":"Projectile"} build
+            </div>
+            <div class="pill">Row 2</div>
+          </div>`);
+
+          html.push(`<div class="card" style="cursor:default">
+            <h3><i class="fa-solid ${a.icon}"></i><span>Starting Armor</span></h3>
+            <div class="desc">
+              <b class="hint">${a.name}</b><br>
+              HP +${a.hp} • DR ${(a.dr*100).toFixed(0)}% • Speed ${a.speed>=0?"+":""}${a.speed}
+            </div>
+            <div class="pill">Row 3</div>
+          </div>`);
+
+          html.push(`<div class="card" style="cursor:default">
+            <h3><i class="fa-solid ${t.icon}"></i><span>Trinket</span></h3>
+            <div class="desc">
+              <b class="hint">${t.name}</b><br>
+              Gold +${Math.round((t.gold||0)*100)}% • XP +${Math.round((t.xp||0)*100)}% • Luck +${Math.round((t.luck||0)*100)}% • MP +${t.mp||0}
+            </div>
+            <div class="pill">Row 4</div>
+          </div>`);
+
+          html.push(`<div class="card" style="cursor:default">
+            <h3><i class="fa-solid ${f==="blade"?"fa-sword":(f==="ranger"?"fa-bow-arrow":"fa-wand-magic-sparkles")}"></i><span>Skill Focus</span></h3>
+            <div class="desc">
+              <b class="hint">${f.toUpperCase()}</b><br>
+              Your run skill tree leans toward this archetype when shrines appear.
+            </div>
+            <div class="pill">Row 5</div>
+          </div>`);
+
+          html.push(`<div class="card" style="cursor:default">
+            <h3><i class="fa-solid fa-pen"></i><span>Name</span></h3>
+            <div class="desc">
+              <input id="nameField" value="${String(d.name).replaceAll('"','&quot;')}" maxlength="12"
+                style="width:100%;padding:10px 10px;border-radius:12px;border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.26);color:var(--ink);font-family:var(--mono);font-weight:800;letter-spacing:.6px;text-transform:uppercase;outline:none;">
+              <div class="smallnote" style="margin-top:8px;">Kept in local save. Press E to apply changes.</div>
+            </div>
+            <div class="pill">Row 6</div>
+          </div>`);
+
+          html.push(`</div>`);
+          html.push(`<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap;">
+            <div class="smallnote">E: Apply • Space: Start from Hub • R: Restart to Hub</div>
+            <div style="display:flex;gap:10px;">
+              <button type="button" id="btnApplyHero"><i class="fa-solid fa-check"></i><span>Apply (E)</span></button>
+              <button type="button" id="btnCloseHero" class="secondary"><i class="fa-solid fa-xmark"></i><span>Close</span></button>
+            </div>
+          </div>`);
+
+          UI.toastSub.innerHTML = html.join("");
+
+          UI.toastSub.querySelector("#btnApplyHero").addEventListener("click", ()=>{
+            apply();
+            SFX.ping("ui");
+          });
+          UI.toastSub.querySelector("#btnCloseHero").addEventListener("click", ()=>{
+            this.closeSubOverlay();
+            SFX.ping("ui");
+          });
+        };
+
+        const apply = ()=>{
+          const d = this.ui.subData;
+          const nameField = UI.toastSub.querySelector("#nameField");
+          const name = (nameField ? nameField.value : d.name).toString().slice(0,12).toUpperCase().replace(/[^A-Z0-9 _-]/g,"");
+          const palId = pal[d.palIdx].id;
+          const weapon = wkeys[d.wIdx];
+          const armor = akeys[d.aIdx];
+          const trinket = tkeys[d.tIdx];
+          const f = focus[d.fIdx];
+
+          SAVE.hero.name = name || "HERO";
+          SAVE.hero.palette = palId;
+          SAVE.hero.weapon = weapon;
+          SAVE.hero.armor = armor;
+          SAVE.hero.trinket = trinket;
+          SAVE.hero.focus = f;
+          saveNow();
+          computeMetaDerived();
+          updateSlots(SAVE.hero);
+          UI.hudName.textContent = SAVE.hero.name;
+          this.resetToHub(false);
+          this.closeSubOverlay();
+        };
+
+        this.ui.subData.apply = apply;
+        this.ui.subData.render = render;
+        this.ui.subData.focusRow = 0;
+        render();
+      },
+
+      showMetaUpgrades(){
+        this.ui.subMode = "META";
+        this.ui.subSel = 0;
+        this.ui.subData = { };
+
+        UI.overlaySub.classList.add("on");
+        UI.overlaySub.setAttribute("aria-hidden","false");
+
+        const render = ()=>{
+          const html = [];
+          html.push(`<h2><i class="fa-solid fa-gem"></i> Meta Upgrades</h2>`);
+          html.push(`<p>Spend <b>✦ essence</b> to permanently improve your hero. Use <b>W/S</b> (or ↑/↓) to select, <b>E</b> to buy. Essence is earned at Game Over/Victory.</p>`);
+          html.push(`<div class="smallnote" style="margin:8px 0 10px 0;">Essence: <b class="hint">${SAVE.meta.essence|0} ✦</b></div>`);
+          html.push(`<div class="grid2" id="metaGrid">`);
+
+          CONFIG.metaUpgrades.forEach((u,idx)=>{
+            const r = clamp(+SAVE.meta.ranks[u.id]||0, 0, u.max);
+            const can = (SAVE.meta.essence|0) >= u.cost && r < u.max;
+            const sel = idx===this.ui.subSel;
+            html.push(`<div class="card ${sel?"sel":""}" data-idx="${idx}" tabindex="0">
+              <h3><i class="fa-solid ${u.icon}"></i><span>${u.name}</span></h3>
+              <div class="desc">${u.desc}<br><span class="muted">Rank ${r}/${u.max} • Cost ${u.cost} ✦</span></div>
+              <div class="pill">${can ? "E: Buy" : (r>=u.max ? "Maxed" : "Not enough ✦")}</div>
+            </div>`);
+          });
+
+          html.push(`</div>`);
+          html.push(`<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap;">
+            <div class="smallnote">Tip: You can still start a run without upgrades. Permadeath is part of the loop.</div>
+            <div style="display:flex;gap:10px;">
+              <button type="button" id="btnCloseMeta" class="secondary"><i class="fa-solid fa-xmark"></i><span>Close</span></button>
+            </div>
+          </div>`);
+          UI.toastSub.innerHTML = html.join("");
+
+          const grid = UI.toastSub.querySelector("#metaGrid");
+          grid.addEventListener("click",(e)=>{
+            const card = e.target.closest(".card");
+            if(!card) return;
+            this.ui.subSel = +card.getAttribute("data-idx");
+            render();
+            SFX.ping("ui");
+          });
+          UI.toastSub.querySelector("#btnCloseMeta").addEventListener("click", ()=>{
+            this.closeSubOverlay();
+            SFX.ping("ui");
+          });
+        };
+
+        this.ui.subData.render = render;
+        render();
+      },
+
+      closeSubOverlay(){
+        UI.overlaySub.classList.remove("on");
+        UI.overlaySub.setAttribute("aria-hidden","true");
+        this.ui.subMode = null;
+        this.ui.subData = null;
+        this.ui.subSel = 0;
+      },
+
+      refreshSubSelection(){
+        const cards = UI.toastSub.querySelectorAll(".card");
+        cards.forEach(c=>c.classList.remove("sel"));
+        const sel = UI.toastSub.querySelector(`.card[data-idx="${this.ui.subSel}"]`);
+        if(sel) sel.classList.add("sel");
+        const pills = UI.toastSub.querySelectorAll(".card .pill");
+        pills.forEach((p,i)=>{ p.textContent = (i===this.ui.subSel) ? "Selected" : "Pick"; });
+      },
+
+      confirmSubSelection(){
+        if(this.ui.subMode==="LEVELUP"){
+          const u = this.ui.subData.picks[this.ui.subSel];
+          if(u){
+            u.apply(this.player);
+            this.history.upgrades.push({ id:u.id, name:u.name, stage:this.stage, level:this.player.level, t:this.runTime });
+            SFX.ping("ui");
+          }
+          this.closeSubOverlay();
+          this.paused = false;
+          this.state = "RUN";
+          UI.hudState.textContent = "RUN";
+          return;
+        }
+        if(this.ui.subMode==="STAGECHOICE"){
+          const c = this.ui.subData.opts[this.ui.subSel];
+          if(c){
+            this.stageChoice = c;
+            this.history.choices.push({ id:c.id, name:c.name, stage:this.stage, t:this.runTime });
+            this.applyStageMod(c.mod||{});
+          }
+          this.closeSubOverlay();
+          this.advanceStage();
+          return;
+        }
+      },
+
+      applyStageMod(mod){
+        const m = this.stageMods;
+        m.goldMul *= (mod.goldMul||1);
+        m.xpMul *= (mod.xpMul||1);
+        m.enemyMul *= (mod.enemyMul||1);
+        m.obstacleMul *= (mod.obstacleMul||1);
+        if(mod.essenceBonus) this.history.choices.push({ id:"essence_bonus", name:`+${mod.essenceBonus} essence bonus`, stage:this.stage, t:this.runTime });
+        if(mod.healBoost) this.history.choices.push({ id:"heal_boost", name:`Healing +${Math.round(mod.healBoost*100)}%`, stage:this.stage, t:this.runTime });
+      },
+
+      stageScale(){
+        const s = this.stage;
+        const curve = CONFIG.scaling.curve;
+        const base = Math.pow(curve, s-1);
+        const spd = base * (1 + this.runTime*CONFIG.scaling.speedUpOverTime);
+        const hp = Math.pow(CONFIG.scaling.enemyHPUp, s-1);
+        const dmg = Math.pow(CONFIG.scaling.enemyDMGUp, s-1);
+        const bossHP = Math.pow(CONFIG.scaling.bossHPUp, (CONFIG.game.bossStages.indexOf(s)>=0? CONFIG.game.bossStages.indexOf(s)+1 : 1));
+        const bossDMG = Math.pow(CONFIG.scaling.bossDMGUp, (CONFIG.game.bossStages.indexOf(s)>=0? CONFIG.game.bossStages.indexOf(s)+1 : 1));
+        return {
+          stage: s,
+          base,
+          spd,
+          hp,
+          dmg,
+          bossHP,
+          bossDMG,
+          xp: 1 + (s-1)*0.05
+        };
+      },
+
+      spawnSlash(player){
+        const w = player.getWeaponDef();
+        const dmg = Math.floor(w.dmg * player.stats.dmgMul * (1 + player.runSkills.blade*0.06));
+        const col = player.palette.accent;
+        this.slashes.push(new Slash(player.x, player.y, player.facing.x, player.facing.y, dmg, w.range, w.arc, col));
+        spawnParticles(player.x + player.facing.x*8, player.y + player.facing.y*8, 8, col, "spark");
+      },
+
+      spawnShot(player, w){
+        const fx = player.facing.x;
+        const fy = player.facing.y;
+        const a = Math.atan2(fy,fx);
+        const spread = (player.weapon==="bow"? w.spread*(1 - player.runSkills.ranger*0.05) : 0.02) * (player.weapon==="staff"? 0.4:1);
+        const aa = a + rnd(-spread, spread);
+        const spd = w.projSpd || 140;
+        const vx = Math.cos(aa)*spd;
+        const vy = Math.sin(aa)*spd;
+        const dmg = Math.floor(w.dmg * player.stats.dmgMul * (1 + (player.weapon==="staff"? player.runSkills.arcane*0.07 : player.runSkills.ranger*0.06)));
+        const col = player.weapon==="staff" ? player.palette.trim : player.palette.accent;
+        const pierce = player.weapon==="staff" ? (w.pierce||0) + Math.floor(player.runSkills.arcane*0.10) : 0;
+        this.projs.push(new Projectile(player.x + fx*10, player.y + fy*10, vx, vy, 3, dmg, "player", col, pierce));
+        spawnParticles(player.x + fx*10, player.y + fy*10, 6, col, "spark");
+      },
+
+      spawnEnemyShot(enemy, player, stageScale){
+        const dx = player.x - enemy.x;
+        const dy = player.y - enemy.y;
+        const d = Math.hypot(dx,dy) || 1;
+        const nx = dx/d, ny = dy/d;
+        let a = Math.atan2(ny,nx);
+        if(enemy.type.id==="mage"){
+          a += Math.sin(enemy.aiT*2.7 + enemy.x*0.03)* (enemy.type.proj?.wobble||0);
+        }else{
+          a += rnd(-0.06,0.06);
+        }
+        const spd = (enemy.type.proj?.spd || 110) * (0.95 + stageScale.base*0.04);
+        const vx = Math.cos(a)*spd;
+        const vy = Math.sin(a)*spd;
+        const col = enemy.type.id==="mage" ? [122,167,255] : [255,210,110];
+        const dmg = Math.floor(enemy.dmg);
+        this.projs.push(new Projectile(enemy.x, enemy.y, vx, vy, 3, dmg, "enemy", col, 0));
+      },
+
+      bossSlam(boss, player, power){
+        const rings = power===1 ? 1 : 2;
+        const base = boss.dmg;
+        for(let r=0;r<rings;r++){
+          const delay = r*0.10;
+          this.fx.particles.push({ kind:"slam", x:boss.x, y:boss.y, t: -delay, life: 0.35 + r*0.12, s: 18 + r*14, c:[255,207,90], dmg: base + r*4 });
+        }
+        screenShake(1.6);
+        SFX.ping("boss");
+      },
+
+      bossSummon(boss, stageScale){
+        const rng = boss.rng;
+        const n = 2 + (boss.phase===2? 2:1);
+        for(let i=0;i<n;i++){
+          const ang = rng()*TAU;
+          const dist = 18 + rng()*28;
+          const x = boss.x + Math.cos(ang)*dist;
+          const y = boss.y + Math.sin(ang)*dist;
+          const t = CONFIG.enemyTypes.find(e=>e.id==="skeleton") || CONFIG.enemyTypes[2];
+          this.enemies.push(new Enemy(x,y,t, stageScale, mulberry32((this.seed ^ (i*1777) ^ 0xB055)>>>0)));
+        }
+        spawnParticles(boss.x,boss.y, 18, [255,207,90], "spark");
+        SFX.ping("boss");
+      },
+
+      bossBurst(boss, player, count, spread){
+        const baseAng = Math.atan2(player.y-boss.y, player.x-boss.x);
+        for(let i=0;i<count;i++){
+          const a = baseAng + (i-(count-1)/2)*spread;
+          const spd = 140 + i*2;
+          const vx = Math.cos(a)*spd;
+          const vy = Math.sin(a)*spd;
+          this.projs.push(new Projectile(boss.x, boss.y, vx, vy, 3, boss.dmg, "boss", [179,122,255], 0));
+        }
+        spawnParticles(boss.x,boss.y, 14, [179,122,255], "spark");
+        SFX.ping("boss");
+      },
+
+      bossRing(boss, count, rot){
+        for(let i=0;i<count;i++){
+          const a = rot + (i/count)*TAU;
+          const spd = 115 + (i%2)*14;
+          const vx = Math.cos(a)*spd;
+          const vy = Math.sin(a)*spd;
+          this.projs.push(new Projectile(boss.x, boss.y, vx, vy, 3, Math.floor(boss.dmg*0.8), "boss", [122,167,255], 0));
+        }
+        spawnParticles(boss.x,boss.y, 12, [122,167,255], "spark");
+        SFX.ping("boss");
+      },
+
+      spawnDrops(x,y, kind, stageScale){
+        const rng = mulberry32(((this.seed ^ ((x*31)|0) ^ ((y*131)|0) ^ (this.stage*9973))>>>0));
+        if(kind==="enemy"){
+          const p = this.player;
+          const luck = clamp((p.stats.luck + p.runSkills.lucky*0.05), 0, 0.55);
+          const healChance = 0.08 + luck*0.20 + (this.stageMods.healBoost||0);
+          const manaChance = 0.06 + luck*0.18;
+          const chestChance = 0.05 + luck*0.10;
+          const orbChance = 0.18 + luck*0.18;
+
+          if(rng() < healChance) this.dungeon.items.push({ kind:"potion", x, y, r: 8, ttl: 24 });
+          if(rng() < manaChance) this.dungeon.items.push({ kind:"ether", x:x+rnd(-6,6), y:y+rnd(-6,6), r: 8, ttl: 24 });
+          if(rng() < chestChance) this.dungeon.items.push({ kind:"chest", x:x+rnd(-6,6), y:y+rnd(-6,6), r: 9, ttl: 40 });
+          if(rng() < orbChance) this.dungeon.items.push({ kind:"orb", x:x+rnd(-6,6), y:y+rnd(-6,6), r: 7, ttl: 18 });
+
+          if(rng() < (0.10 + luck*0.12)){
+            const eq = this.rollEquipment(rng);
+            this.dungeon.items.push({ kind:"equip", eq, x:x+rnd(-8,8), y:y+rnd(-8,8), r: 9, ttl: 50 });
+          }
+        }else if(kind==="boss"){
+          this.dungeon.items.push({ kind:"chest", x:x+6, y:y, r: 10, ttl: 120 });
+          this.dungeon.items.push({ kind:"chest", x:x-6, y:y, r: 10, ttl: 120 });
+          const eq = this.rollEquipment(rng, true);
+          this.dungeon.items.push({ kind:"equip", eq, x, y: y-10, r: 10, ttl: 120 });
+          this.dungeon.items.push({ kind:"orb", x, y:y+12, r: 8, ttl: 120 });
+          this.dungeon.items.push({ kind:"orb", x:x+10, y:y+8, r: 8, ttl: 120 });
+        }
+      },
+
+      rollEquipment(rng, boss=false){
+        const wkeys = Object.keys(CONFIG.weapons);
+        const akeys = Object.keys(CONFIG.armors);
+        const tkeys = Object.keys(CONFIG.trinkets);
+
+        const roll = rng();
+        if(roll < 0.40){
+          const base = wkeys[Math.floor(rng()*wkeys.length)];
+          const tier = boss ? 2 : (rng()<0.25? 1:0);
+          return { slot:"weapon", id:base, tier };
+        }else if(roll < 0.74){
+          const base = akeys[Math.floor(rng()*akeys.length)];
+          const tier = boss ? 2 : (rng()<0.25? 1:0);
+          return { slot:"armor", id:base, tier };
+        }else{
+          const base = tkeys[Math.floor(rng()*tkeys.length)];
+          const tier = boss ? 2 : (rng()<0.25? 1:0);
+          return { slot:"trinket", id:base, tier };
+        }
+      },
+
+      applyEquipment(eq){
+        if(!eq) return false;
+        const p = this.player;
+        if(eq.slot==="weapon"){
+          p.weapon = eq.id;
+          SAVE.hero.weapon = eq.id;
+          saveNow();
+          updateSlots(SAVE.hero);
+          return true;
+        }
+        if(eq.slot==="armor"){
+          const curArm = CONFIG.armors[p.hero.armor] || CONFIG.armors.cloth;
+          const newArm = CONFIG.armors[eq.id] || CONFIG.armors.cloth;
+
+          p.stats.maxHP -= (curArm.hp||0);
+          p.stats.maxHP += (newArm.hp||0);
+          p.stats.speed -= (curArm.speed||0);
+          p.stats.speed += (newArm.speed||0);
+          p.stats.dr -= (curArm.dr||0);
+          p.stats.dr += (newArm.dr||0);
+
+          p.hp = clamp(p.hp, 1, p.stats.maxHP);
+
+          p.hero.armor = eq.id;
+          SAVE.hero.armor = eq.id;
+          saveNow();
+          updateSlots(SAVE.hero);
+          return true;
+        }
+        if(eq.slot==="trinket"){
+          const curT = CONFIG.trinkets[p.hero.trinket] || CONFIG.trinkets.none;
+          const newT = CONFIG.trinkets[eq.id] || CONFIG.trinkets.none;
+
+          p.stats.maxMP -= (curT.mp||0);
+          p.stats.maxMP += (newT.mp||0);
+          p.stats.luck -= (curT.luck||0);
+          p.stats.luck += (newT.luck||0);
+          p.stats.goldMul /= (1 + (curT.gold||0));
+          p.stats.goldMul *= (1 + (newT.gold||0));
+          p.stats.xpMul /= (1 + (curT.xp||0));
+          p.stats.xpMul *= (1 + (newT.xp||0));
+
+          p.mp = clamp(p.mp, 0, p.stats.maxMP);
+
+          p.hero.trinket = eq.id;
+          SAVE.hero.trinket = eq.id;
+          saveNow();
+          updateSlots(SAVE.hero);
+          return true;
+        }
+        return false;
+      },
+
+      tryInteract(){
+        if(this.state==="HUB"){
+          if(this.ui.subMode) return;
+          const card = this.ui.hubSel || 0;
+          if(card===0) this.showHeroMaker();
+          else this.showMetaUpgrades();
+          return;
+        }
+        if(this.state!=="RUN") return;
+
+        const p = this.player;
+
+        const d = this.dungeon;
+        if(d.exit.active){
+          const dist = Math.hypot(p.x - d.exit.x, p.y - d.exit.y);
+          if(dist < p.r + d.exit.r + 6){
+            if(this.stage < CONFIG.game.stages){
+              d.exit.active = false;
+              this.showStageChoice();
+            }else{
+              if(!this.boss){
+                this.finishVictory();
+              }
+            }
+            return;
+          }
+        }
+
+        let best = null;
+        let bestD = 9999;
+        for(const it of d.items){
+          const dist = Math.hypot(p.x-it.x, p.y-it.y);
+          if(dist < bestD && dist < p.r + (it.r||8) + 10){
+            bestD = dist;
+            best = it;
+          }
+        }
+        if(best){
+          if(best.kind==="equip" && best.eq){
+            this.applyEquipment(best.eq);
+            spawnParticles(best.x,best.y, 12, p.palette.trim, "spark");
+            SFX.ping("ui");
+            best.ttl = 0;
+          }
+        }
+      },
+
+      advanceStage(){
+        this.stage++;
+        if(this.stage > CONFIG.game.stages){
+          this.finishVictory();
+          return;
+        }
+        this.state = "RUN";
+        this.paused = false;
+
+        this.enemies = [];
+        this.boss = null;
+        this.projs = [];
+        this.slashes = [];
+        this.fx.particles = [];
+
+        this.dungeon = new Dungeon(this.seed ^ (this.stage*7919) ^ 0xA11CE, this.stage, this.stageMods);
+        this.player.x = this.dungeon.start.x;
+        this.player.y = this.dungeon.start.y;
+
+        this.stageSpawn.t = 0;
+        this.stageSpawn.next = 0.9 * Math.pow(CONFIG.scaling.spawnRateUp, this.stage-1);
+
+        UI.hudState.textContent = "RUN";
+        screenShake(0.9);
+        SFX.ping("ui");
+      },
+
+      finishGameOver(){
+        this.state = "GAMEOVER";
+        this.paused = true;
+        UI.hudState.textContent = "GAMEOVER";
+        UI.overlayMain.classList.add("on");
+        UI.overlayMain.setAttribute("aria-hidden","false");
+        UI.hubGrid.style.display = "none";
+        UI.btnStart.querySelector("span").textContent = "Return to Hub (Space)";
+        UI.ovTitle.textContent = "GAME OVER";
+        const essenceEarned = this.computeEssenceEarned();
+        SAVE.meta.essence = (SAVE.meta.essence|0) + essenceEarned;
+        computeMetaDerived();
+        this.commitRecord("DEATH", essenceEarned);
+        saveNow();
+        UI.txtMeta.textContent = `${SAVE.meta.essence|0} ✦`;
+        UI.ovDesc.textContent = `You fell in the dungeon. Earned ✦ ${essenceEarned}. Press Space to return to Hub, or R to restart.`;
+        UI.txtRunNote.textContent = "Space: Hub • R: Restart";
+        SFX.ping("death");
+      },
+
+      finishVictory(){
+        this.state = "VICTORY";
+        this.paused = true;
+        UI.hudState.textContent = "VICTORY";
+        UI.overlayMain.classList.add("on");
+        UI.overlayMain.setAttribute("aria-hidden","false");
+        UI.hubGrid.style.display = "none";
+        UI.btnStart.querySelector("span").textContent = "Return to Hub (Space)";
+        UI.ovTitle.textContent = "VICTORY";
+        const essenceEarned = this.computeEssenceEarned(true);
+        SAVE.meta.essence = (SAVE.meta.essence|0) + essenceEarned;
+        computeMetaDerived();
+        this.commitRecord("VICTORY", essenceEarned);
+        saveNow();
+        UI.txtMeta.textContent = `${SAVE.meta.essence|0} ✦`;
+        UI.ovDesc.textContent = `You cleared all 8 stages. Earned ✦ ${essenceEarned}. Press Space to return to Hub, or R to restart.`;
+        UI.txtRunNote.textContent = "Space: Hub • R: Restart";
+        SFX.ping("boss");
+      },
+
+      computeEssenceEarned(victory=false){
+        const t = this.runTime;
+        const stage = this.stage;
+        const bossB = this.history.bossesDefeated;
+        const base = Math.floor(1 + stage*1.2 + bossB*3 + Math.sqrt(Math.max(0,t))*0.18);
+        const bonus = victory ? 6 : 0;
+        const choiceBonus = this.history.choices.filter(c=>c.id==="essence_bonus").length;
+        return clamp(base + bonus + choiceBonus, 0, 9999);
+      },
+
+      commitRecord(result, essenceEarned){
+        const rec = {
+          ts: new Date().toISOString(),
+          result,
+          stageReached: this.stage,
+          bossesDefeated: this.history.bossesDefeated,
+          timeSurvived: +this.runTime.toFixed(2),
+          score: Math.floor(this.score),
+          gold: this.player ? (this.player.gold|0) : 0,
+          level: this.player ? (this.player.level|0) : 1,
+          essence: essenceEarned|0,
+          hero: { ...SAVE.hero },
+          stageMods: { ...this.stageMods },
+          choices: this.history.choices.slice(0,40),
+          upgrades: this.history.upgrades.slice(0,40)
+        };
+        SAVE.records.unshift(rec);
+        SAVE.records = SAVE.records.slice(0,40);
+      },
+
+      update(dt){
+        if(this.state==="HUB"){
+          this.updateHub(dt);
+          return;
+        }
+
+        if(this.state==="RUN"){
+          if(this.paused) return;
+
+          this.runTime += dt;
+          this.score = this.runTime * CONFIG.game.scorePerSecond;
+
+          const p = this.player;
+          if(p.dead){
+            this.finishGameOver();
+            return;
+          }
+
+          if(consumePressed("Shift")) p.tryDash();
+
+          p.update(dt, this.dungeon);
+          this.updateParticles(dt);
+          
+          if(!this.paused){
+            let best=null, bestD=1e9;
+            for(const e of this.enemies){
+              if(e.dead) continue;
+              const d = Math.hypot(e.x-p.x, e.y-p.y);
+              if(d<bestD){ bestD=d; best=e; }
+            }
+            if(this.boss && !this.boss.dead){
+              const d = Math.hypot(this.boss.x-p.x, this.boss.y-p.y);
+              if(d<bestD){ bestD=d; best=this.boss; }
+            }
+            if(best && bestD < 120){
+              const dx = best.x - p.x, dy = best.y - p.y;
+              const len = Math.hypot(dx,dy)||1;
+              p.facing.x = dx/len; p.facing.y = dy/len;
+              p.tryAttack();
+            }
+          }
+
+
+          this.updateSpawns(dt);
+
+          const scale = this.stageScale();
+          for(const e of this.enemies){
+            e.update(dt, this.dungeon, p, scale);
+            if(!e.dead){
+              const d = Math.hypot(e.x-p.x, e.y-p.y);
+              if(d < e.r + p.r + 1){
+                p.hurt(e.dmg, "contact");
+                e.vx -= (p.x-e.x)*4;
+                e.vy -= (p.y-e.y)*4;
+              }
+            }
+          }
+
+          if(this.boss && !this.boss.dead){
+            this.boss.update(dt, this.dungeon, p, scale);
+            const d = Math.hypot(this.boss.x-p.x, this.boss.y-p.y);
+            if(d < this.boss.r + p.r + 3){
+              p.hurt(this.boss.dmg, "contact");
+              p.vx -= (p.x-this.boss.x)*6;
+              p.vy -= (p.y-this.boss.y)*6;
+            }
+          }
+
+          for(const pr of this.projs){
+            pr.update(dt, this.dungeon);
+            if(pr.dead) continue;
+            if(pr.owner==="player"){
+              const list = this.boss && !this.boss.dead ? [...this.enemies, this.boss] : this.enemies;
+              for(const e of list){
+                if(e.dead) continue;
+                const d = Math.hypot(pr.x-e.x, pr.y-e.y);
+                if(d < pr.r + e.r){
+                  const dmg = pr.dmg;
+                  const kx = (pr.vx/(Math.hypot(pr.vx,pr.vy)||1)) * 60;
+                  const ky = (pr.vy/(Math.hypot(pr.vx,pr.vy)||1)) * 60;
+
+                  if(e instanceof Boss){
+                    if(e.take(dmg)){
+                      e.flash = 0.12;
+                      spawnParticles(pr.x,pr.y, 10, [255,207,90], "spark");
+                      screenShake(0.6);
+                    }
+                  }else{
+                    e.hit(dmg, kx*0.6, ky*0.6);
+                    spawnParticles(pr.x,pr.y, 8, [255,207,90], "spark");
+                  }
+
+                  if(pr.pierce>0){
+                    pr.pierce--;
+                  }else{
+                    pr.dead = true;
+                  }
+                  break;
+                }
+              }
+            }else{
+              const d = Math.hypot(pr.x - p.x, pr.y - p.y);
+              if(d < pr.r + p.r){
+                p.hurt(pr.dmg, "proj");
+                pr.dead = true;
+              }
+            }
+          }
+
+          for(const sl of this.slashes){
+            sl.update(dt);
+            const targetList = this.boss && !this.boss.dead ? [...this.enemies, this.boss] : this.enemies;
+            const hit = sl.sampleHits(targetList);
+            if(hit){
+              const pcol = this.player.palette.accent;
+              if(hit instanceof Boss){
+                if(hit.take(sl.dmg)){
+                  spawnParticles(hit.x,hit.y, 14, pcol, "spark");
+                  screenShake(0.8);
+                }
+              }else{
+                const dx = hit.x - this.player.x;
+                const dy = hit.y - this.player.y;
+                const d = Math.hypot(dx,dy)||1;
+                hit.hit(sl.dmg, (dx/d)*90, (dy/d)*90);
+                spawnParticles(hit.x,hit.y, 12, pcol, "spark");
+                screenShake(0.6);
+              }
+            }
+          }
+
+          this.cleanupEntities(scale);
+
+          this.handleDrops(dt);
+
+          this.processBossHazards(dt);
+
+          if(consumePressed("e") || consumePressed("E")){
+            this.tryInteract();
+          }
+
+          if(consumePressed("Space")){
+            this.togglePause();
+          }
+
+          if(consumePressed("r") || consumePressed("R")){
+            this.resetToHub(false);
+          }
+
+          this.updateCamera(dt);
+          return;
+        }
+
+        if(this.state==="LEVELUP" || this.state==="STAGECHOICE"){
+          if(consumePressed("a") || consumePressed("A") || consumePressed("ArrowLeft")){
+            this.ui.subSel = Math.max(0, this.ui.subSel-1);
+            this.refreshSubSelection();
+            SFX.ping("ui");
+          }
+          if(consumePressed("d") || consumePressed("D") || consumePressed("ArrowRight")){
+            const max = (this.ui.subMode==="LEVELUP" ? 2 : 1);
+            this.ui.subSel = Math.min(max, this.ui.subSel+1);
+            this.refreshSubSelection();
+            SFX.ping("ui");
+          }
+          if(consumePressed("e") || consumePressed("E")){
+            this.confirmSubSelection();
+            SFX.ping("ui");
+          }
+          if(consumePressed("Space")){
+            this.togglePause();
+          }
+          if(consumePressed("r") || consumePressed("R")){
+            this.resetToHub(false);
+          }
+          return;
+        }
+
+        if(this.state==="GAMEOVER" || this.state==="VICTORY"){
+          if(consumePressed("Space")){
+            this.resetToHub(false);
+          }
+          if(consumePressed("r") || consumePressed("R")){
+            this.resetToHub(false);
+          }
+        }
+      },
+
+      updateHub(dt){
+        this.updateCamera(dt);
+
+        UI.overlayMain.classList.add("on");
+        UI.overlayMain.setAttribute("aria-hidden","false");
+        UI.hudState.textContent = "HUB";
+        UI.hubGrid.style.display = "";
+
+        if(this.ui.subMode==="HEROMAKER"){
+          if(consumePressed("e") || consumePressed("E")){
+            this.ui.subData.apply();
+            SFX.ping("ui");
+          }
+          const d = this.ui.subData;
+          if(consumePressed("a") || consumePressed("A") || consumePressed("ArrowLeft")){
+            d.focusRow = clamp((d.focusRow||0)-1, 0, 5);
+            SFX.ping("ui");
+          }
+          if(consumePressed("d") || consumePressed("D") || consumePressed("ArrowRight")){
+            d.focusRow = clamp((d.focusRow||0)+1, 0, 5);
+            SFX.ping("ui");
+          }
+          if(consumePressed("w") || consumePressed("W") || consumePressed("ArrowUp")){
+            this.adjustHeroMaker(-1);
+            SFX.ping("ui");
+          }
+          if(consumePressed("s") || consumePressed("S") || consumePressed("ArrowDown")){
+            this.adjustHeroMaker(+1);
+            SFX.ping("ui");
+          }
+          if(consumePressed("Space")){
+            this.startRun();
+          }
+          if(consumePressed("r") || consumePressed("R")){
+            this.resetToHub(false);
+          }
+          return;
+        }
+
+        if(this.ui.subMode==="META"){
+          if(consumePressed("w") || consumePressed("W") || consumePressed("ArrowUp")){
+            this.ui.subSel = Math.max(0, this.ui.subSel-1);
+            this.ui.subData.render();
+            SFX.ping("ui");
+          }
+          if(consumePressed("s") || consumePressed("S") || consumePressed("ArrowDown")){
+            this.ui.subSel = Math.min(CONFIG.metaUpgrades.length-1, this.ui.subSel+1);
+            this.ui.subData.render();
+            SFX.ping("ui");
+          }
+          if(consumePressed("e") || consumePressed("E")){
+            this.buyMetaUpgrade();
+            this.ui.subData.render();
+            SFX.ping("ui");
+          }
+          if(consumePressed("Space")){
+            this.startRun();
+          }
+          if(consumePressed("r") || consumePressed("R")){
+            this.resetToHub(false);
+          }
+          return;
+        }
+
+        if(consumePressed("Space")){
+          this.startRun();
+        }
+        if(consumePressed("e") || consumePressed("E")){
+          this.showHeroMaker();
+          SFX.ping("ui");
+        }
+        if(consumePressed("r") || consumePressed("R")){
+          this.resetToHub(false);
+        }
+      },
+
+      adjustHeroMaker(dir){
+        const d = this.ui.subData;
+        const pal = CONFIG.heroMaker.palettes;
+        const wkeys = Object.keys(CONFIG.weapons);
+        const akeys = Object.keys(CONFIG.armors);
+        const tkeys = Object.keys(CONFIG.trinkets);
+        const focus = ["blade","ranger","arcane"];
+        const row = d.focusRow||0;
+
+        if(row===0) d.palIdx = (d.palIdx + dir + pal.length)%pal.length;
+        if(row===1) d.wIdx = (d.wIdx + dir + wkeys.length)%wkeys.length;
+        if(row===2) d.aIdx = (d.aIdx + dir + akeys.length)%akeys.length;
+        if(row===3) d.tIdx = (d.tIdx + dir + tkeys.length)%tkeys.length;
+        if(row===4) d.fIdx = (d.fIdx + dir + focus.length)%focus.length;
+
+        d.render();
+      },
+
+      buyMetaUpgrade(){
+        const u = CONFIG.metaUpgrades[this.ui.subSel];
+        if(!u) return;
+        const r = clamp(+SAVE.meta.ranks[u.id]||0, 0, u.max);
+        if(r>=u.max) return;
+        if((SAVE.meta.essence|0) < u.cost) return;
+        SAVE.meta.essence = (SAVE.meta.essence|0) - u.cost;
+        SAVE.meta.ranks[u.id] = r+1;
+        computeMetaDerived();
+        saveNow();
+        UI.txtMeta.textContent = `${SAVE.meta.essence|0} ✦`;
+        screenShake(0.5);
+      },
+
+      updateSpawns(dt){
+        const scale = this.stageScale();
+        this.stageSpawn.t += dt;
+
+        const baseInterval = 1.2 * Math.pow(CONFIG.scaling.spawnRateUp, this.stage-1);
+        const timeFactor = clamp(1 - (this.runTime/CONFIG.game.stageTimeSoftCap)*0.30, 0.55, 1.0);
+        const mod = (this.stageMods.enemyMul||1);
+        const interval = (baseInterval * timeFactor) / mod;
+
+        if(this.stageSpawn.t >= this.stageSpawn.next){
+          this.stageSpawn.t = 0;
+          this.stageSpawn.next = interval * (0.86 + Math.random()*0.35);
+
+          const maxEnemies = clamp(10 + this.stage*3, 10, 40);
+          if(this.enemies.length < maxEnemies && !this.boss){
+            const sp = this.dungeon.spawnPoints[Math.floor(Math.random()*this.dungeon.spawnPoints.length)];
+            const px = this.player.x, py = this.player.y;
+            if(sp && Math.hypot(sp.x-px, sp.y-py) > 60){
+              const et = this.pickEnemyType();
+              const rng = mulberry32((this.seed ^ ((this.enemies.length+1)*1013) ^ (this.stage*919))>>>0);
+              this.enemies.push(new Enemy(sp.x + rnd(-8,8), sp.y + rnd(-8,8), et, scale, rng));
+            }
+          }
+
+          if(CONFIG.game.bossStages.includes(this.stage)){
+            this.tryStartBoss(scale);
+          }
+        }
+      },
+
+      updateParticles(dt){
+        const out = [];
+        for(const fx of this.fx.particles){
+          if(fx.kind==="slam"){
+            out.push(fx);
+            continue;
+          }
+          fx.t += dt;
+          fx.x += (fx.vx||0)*dt;
+          fx.y += (fx.vy||0)*dt;
+          fx.vx *= Math.pow(0.08, dt);
+          fx.vy *= Math.pow(0.08, dt);
+          if(fx.t <= (fx.life||0.6)) out.push(fx);
+        }
+        this.fx.particles = out;
+      },
+
+
+      pickEnemyType(){
+        const s = this.stage;
+        const pool = CONFIG.enemyTypes.slice();
+        const weights = pool.map(e=>{
+          let w = 1;
+          if(e.id==="slime") w = s<3 ? 2.2 : 1.1;
+          if(e.id==="bat") w = s<4 ? 1.8 : 1.0;
+          if(e.id==="skeleton") w = s>=2 ? 1.6 : 0.7;
+          if(e.id==="archer") w = s>=3 ? 1.2 : 0.4;
+          if(e.id==="mage") w = s>=4 ? 1.1 : 0.25;
+          if(e.id==="brute") w = s>=5 ? 1.0 : 0.18;
+          return w;
+        });
+        let sum = weights.reduce((a,b)=>a+b,0);
+        let r = Math.random()*sum;
+        for(let i=0;i<pool.length;i++){
+          r -= weights[i];
+          if(r<=0) return pool[i];
+        }
+        return pool[0];
+      },
+
+      tryStartBoss(scale){
+        if(this.boss || this.stage<1) return;
+        const br = this.dungeon.bossRoom;
+        if(!br) return;
+        const bx = (br.cx|0)*this.dungeon.tile;
+        const by = (br.cy|0)*this.dungeon.tile;
+        const dist = Math.hypot(this.player.x - bx, this.player.y - by);
+        if(dist < 42){
+          const kind = (this.stage===4) ? "golem" : "lich";
+          this.boss = new Boss(bx, by, this.stage, kind, scale, mulberry32((this.seed ^ 0xB055B055 ^ (this.stage*123457))>>>0));
+          UI.txtBoss.textContent = `Boss: ${this.boss.name}`;
+          screenShake(2.0);
+          SFX.ping("boss");
+        }
+      },
+
+      processBossHazards(dt){
+        const p = this.player;
+        for(const fx of this.fx.particles){
+          if(fx.kind!=="slam") continue;
+          fx.t += dt;
+          if(fx.t<0) continue;
+          const pr = clamp(fx.t / (fx.life||0.4), 0, 1);
+          if(pr>1) continue;
+          const rad = fx.s * (0.6 + pr*1.1);
+          const d = Math.hypot(p.x - fx.x, p.y - fx.y);
+          if(d < rad + p.r){
+            const did = p.hurt(fx.dmg, "slam");
+            if(did){
+              p.vx += (p.x-fx.x)/(d||1) * 90;
+              p.vy += (p.y-fx.y)/(d||1) * 90;
+            }
+          }
+        }
+        this.fx.particles = this.fx.particles.filter(fx=>{
+          if(fx.kind==="slam"){
+            return fx.t < fx.life + 0.1;
+          }
+          return true;
+        });
+      },
+
+      cleanupEntities(scale){
+        const p = this.player;
+        for(const e of this.enemies){
+          if(e.dead){
+            spawnParticles(e.x,e.y, 10, e.baseColor, "spark");
+            this.spawnDrops(e.x,e.y, "enemy", scale);
+
+            const gold = irnd(e.gold[1], e.gold[0]);
+            p.addGold(Math.floor(gold * p.stats.goldMul * (this.stageMods.goldMul||1)));
+            p.addXP(Math.floor(e.xp * p.stats.xpMul * (this.stageMods.xpMul||1)));
+
+            if(p.stats.healOnKill>0) p.heal(p.stats.healOnKill);
+            if(p.stats.manaOnKill>0) p.mana(p.stats.manaOnKill);
+          }
+        }
+        this.enemies = this.enemies.filter(e=>!e.dead);
+
+        if(this.boss && this.boss.dead){
+          this.history.bossesDefeated++;
+          this.spawnDrops(this.boss.x, this.boss.y, "boss", scale);
+          UI.txtBoss.textContent = "Boss: Defeated";
+          screenShake(2.4);
+          SFX.ping("boss");
+          this.boss = null;
+
+          if(this.stage===CONFIG.game.stages){
+            this.dungeon.exit.active = true;
+          }else{
+            this.dungeon.exit.active = true;
+          }
+        }
+
+        this.projs = this.projs.filter(p0=>!p0.dead);
+        this.slashes = this.slashes.filter(s0=>!s0.dead);
+      },
+
+      handleDrops(dt){
+        const d = this.dungeon;
+        const p = this.player;
+        for(const it of d.items){
+          it.ttl -= dt;
+          if(it.ttl<=0) continue;
+          const dist = Math.hypot(p.x-it.x, p.y-it.y);
+          if(dist < (p.stats.pickupRadius + (it.r||8))){
+            if(it.kind==="potion"){
+              p.consumables.potion = clamp(p.consumables.potion+1, 0, 9);
+              spawnParticles(it.x,it.y, 10, p.palette.body, "heal");
+              SFX.ping("xp");
+              it.ttl = 0;
+            }else if(it.kind==="ether"){
+              p.consumables.ether = clamp(p.consumables.ether+1, 0, 9);
+              spawnParticles(it.x,it.y, 10, p.palette.trim, "heal");
+              SFX.ping("xp");
+              it.ttl = 0;
+            }else if(it.kind==="goldpile"){
+              const amt = irnd(CONFIG.items.goldpile.amount[1], CONFIG.items.goldpile.amount[0]);
+              p.addGold(Math.floor(amt * p.stats.goldMul * (this.stageMods.goldMul||1)));
+              spawnParticles(it.x,it.y, 8, [255,207,90], "spark");
+              SFX.ping("coin");
+              it.ttl = 0;
+            }else if(it.kind==="chest"){
+              const amt = irnd(CONFIG.items.chest.amount[1], CONFIG.items.chest.amount[0]);
+              p.addGold(Math.floor(amt * p.stats.goldMul * (this.stageMods.goldMul||1)));
+              spawnParticles(it.x,it.y, 12, [255,207,90], "spark");
+              SFX.ping("coin");
+              it.ttl = 0;
+              if(Math.random() < (0.55 + p.stats.luck*0.30)){
+                const eq = this.rollEquipment(mulberry32((this.seed ^ ((it.x*19)|0) ^ ((it.y*31)|0) ^ 0xCABCAB)>>>0), false);
+                d.items.push({ kind:"equip", eq, x:it.x+rnd(-10,10), y:it.y+rnd(-10,10), r: 9, ttl: 40 });
+              }
+            }else if(it.kind==="orb"){
+              const amt = irnd(CONFIG.items.orb.amount[1], CONFIG.items.orb.amount[0]);
+              p.addXP(Math.floor(amt * p.stats.xpMul * (this.stageMods.xpMul||1)));
+              spawnParticles(it.x,it.y, 10, [88,226,106], "spark");
+              SFX.ping("xp");
+              it.ttl = 0;
+            }
+          }
+        }
+        d.items = d.items.filter(it=>it.ttl>0);
+      },
+
+      updateCamera(dt){
+        const p = this.player;
+        if(!p || !this.dungeon) return;
+        const camTargetX = clamp(p.x - off.width/2, 0, this.dungeon.tw*this.dungeon.tile - off.width);
+        const camTargetY = clamp(p.y - off.height/2, 0, this.dungeon.th*this.dungeon.tile - off.height);
+        this.cam.update(dt, camTargetX, camTargetY);
+      },
+
+      render(){
+        const p = this.player;
+        const d = this.dungeon;
+        const camX = this.cam.x;
+        const camY = this.cam.y;
+
+        const tsec = this.runTime;
+
+        g.clearRect(0,0,off.width,off.height);
+
+        d.drawParallax(g, camX, camY, tsec);
+        d.drawTiles(g, camX, camY);
+
+        for(const it of d.items){
+          const x = it.x - camX;
+          const y = it.y - camY;
+          if(x<-16||y<-16||x>off.width+16||y>off.height+16) continue;
+
+          if(it.kind==="equip"){
+            g.fillStyle = "rgba(179,122,255,.20)";
+            g.fillRect(x-8,y-8,16,16);
+            g.fillStyle = "rgba(179,122,255,.75)";
+            g.fillRect(x-4,y-4,8,8);
+          }else if(it.kind==="chest"){
+            g.fillStyle = "rgba(255,207,90,.22)";
+            g.fillRect(x-8,y-7,16,14);
+            g.fillStyle = "rgba(255,207,90,.75)";
+            g.fillRect(x-6,y-5,12,10);
+            g.fillStyle = "rgba(0,0,0,.28)";
+            g.fillRect(x-6,y+3,12,2);
+          }else if(it.kind==="orb"){
+            g.fillStyle = "rgba(88,226,106,.20)";
+            g.fillRect(x-6,y-6,12,12);
+            g.fillStyle = "rgba(88,226,106,.78)";
+            g.fillRect(x-3,y-3,6,6);
+          }else if(it.kind==="potion"){
+            g.fillStyle = "rgba(255,90,122,.20)";
+            g.fillRect(x-6,y-6,12,12);
+            g.fillStyle = "rgba(255,90,122,.78)";
+            g.fillRect(x-2,y-2,4,4);
+          }else if(it.kind==="ether"){
+            g.fillStyle = "rgba(122,167,255,.20)";
+            g.fillRect(x-6,y-6,12,12);
+            g.fillStyle = "rgba(122,167,255,.78)";
+            g.fillRect(x-2,y-2,4,4);
+          }
+        }
+
+        for(const pr of this.projs){
+          const x = pr.x - camX;
+          const y = pr.y - camY;
+          if(x<-8||y<-8||x>off.width+8||y>off.height+8) continue;
+          g.fillStyle = makeColor(pr.color, 0.92);
+          g.fillRect(x-2,y-2,4,4);
+          g.fillStyle = "rgba(255,255,255,.12)";
+          g.fillRect(x-1,y-1,2,2);
+        }
+
+        for(const sl of this.slashes){
+          const a0 = Math.atan2(sl.fy, sl.fx);
+          const swing = clamp(sl.t/0.10, 0, 1);
+          const ang = a0 + (swing-0.5)*sl.arc;
+          const x = sl.x + Math.cos(ang)*sl.range - camX;
+          const y = sl.y + Math.sin(ang)*sl.range - camY;
+          g.save();
+          g.globalAlpha = 0.9;
+          g.fillStyle = makeColor(sl.color, 0.65);
+          g.fillRect(x-6,y-2,12,4);
+          g.restore();
+        }
+
+        for(const e of this.enemies){
+          const x = e.x - camX;
+          const y = e.y - camY;
+          if(x<-20||y<-20||x>off.width+20||y>off.height+20) continue;
+          const col = e.flash>0 ? "rgba(255,255,255,.90)" : makeColor(e.baseColor, 0.92);
+          g.fillStyle = col;
+          g.fillRect(x-6,y-6,12,12);
+          g.fillStyle = "rgba(0,0,0,.22)";
+          g.fillRect(x-6,y+5,12,2);
+
+          g.fillStyle = "rgba(0,0,0,.32)";
+          g.fillRect(x-7,y-10,14,3);
+          g.fillStyle = "rgba(88,226,106,.85)";
+          g.fillRect(x-7,y-10, Math.floor(14*(e.hp/e.maxHP)), 3);
+        }
+
+        if(this.boss){
+          const b = this.boss;
+          const x = b.x - camX;
+          const y = b.y - camY;
+          const col = b.flash>0 ? "rgba(255,255,255,.92)" : (b.kind==="golem" ? "rgba(255,207,90,.92)" : "rgba(179,122,255,.92)");
+          g.fillStyle = col;
+          g.fillRect(x-12,y-12,24,24);
+          g.fillStyle = "rgba(0,0,0,.22)";
+          g.fillRect(x-12,y+11,24,2);
+
+          g.fillStyle = "rgba(0,0,0,.42)";
+          g.fillRect(x-20,y-22,40,5);
+          g.fillStyle = "rgba(255,90,122,.88)";
+          g.fillRect(x-20,y-22, Math.floor(40*(b.hp/b.maxHP)), 5);
+
+          drawText(g, b.name, x, y-34, 7, "rgba(232,240,255,.90)", "center");
+        }
+
+        const pal = p.palette;
+        for(const t0 of p.trail){
+          const a = clamp(1 - t0.t/0.22, 0, 1)*0.38;
+          g.fillStyle = makeColor(pal.trim, a);
+          g.fillRect((t0.x-camX)-3, (t0.y-camY)-3, 6, 6);
+        }
+
+        const px = p.x - camX;
+        const py = p.y - camY;
+        const body = p.flash>0 ? "rgba(255,255,255,.92)" : makeColor(pal.body, 0.95);
+        g.fillStyle = body;
+        g.fillRect(px-6,py-7,12,14);
+
+        g.fillStyle = makeColor(pal.accent, 0.90);
+        g.fillRect(px-3,py-5,6,4);
+        g.fillStyle = makeColor(pal.trim, 0.88);
+        g.fillRect(px-5,py+2,10,3);
+
+        if(p.iTime>0){
+          g.save();
+          g.globalAlpha = 0.35;
+          g.strokeStyle = makeColor([122,167,255], 0.65);
+          g.strokeRect(px-9,py-10,18,20);
+          g.restore();
+        }
+
+        for(const fx of this.fx.particles){
+          if(fx.kind==="slam"){
+            const tt = fx.t;
+            if(tt<0) continue;
+            const pr = clamp(tt/(fx.life||0.4), 0, 1);
+            const rad = fx.s*(0.6 + pr*1.2);
+            g.save();
+            g.globalAlpha = (1-pr)*0.35;
+            g.strokeStyle = "rgba(255,207,90,.85)";
+            g.beginPath();
+            g.arc(fx.x-camX, fx.y-camY, rad, 0, TAU);
+            g.stroke();
+            g.restore();
+          }else{
+            fx.t += 0;
+            const pr = clamp(fx.t/(fx.life||0.6), 0, 1);
+            const a = (1-pr);
+            g.fillStyle = makeColor(fx.c, a*0.85);
+            g.fillRect((fx.x-camX)-fx.s, (fx.y-camY)-fx.s, fx.s*2, fx.s*2);
+          }
+        }
+
+        if(this.state==="RUN"){
+          const ex = d.exit.x - camX;
+          const ey = d.exit.y - camY;
+          const dist = Math.hypot(p.x - d.exit.x, p.y - d.exit.y);
+          if(d.exit.active && dist < p.r + d.exit.r + 10){
+            g.save();
+            g.globalAlpha = 0.9;
+            g.fillStyle = "rgba(0,0,0,.48)";
+            g.fillRect(ex-54, ey-24, 108, 18);
+            drawText(g, "E: Enter Portal", ex, ey-22, 8, "rgba(232,240,255,.92)", "center");
+            g.restore();
+          }
+
+          let best = null;
+          let bestD = 9999;
+          for(const it of d.items){
+            if(it.kind!=="equip") continue;
+            const dist2 = Math.hypot(p.x-it.x, p.y-it.y);
+            if(dist2 < bestD){
+              bestD = dist2;
+              best = it;
+            }
+          }
+          if(best && bestD < p.r + (best.r||8) + 16){
+            g.save();
+            g.globalAlpha = 0.9;
+            const x = best.x - camX;
+            const y = best.y - camY;
+            g.fillStyle = "rgba(0,0,0,.48)";
+            g.fillRect(x-62, y-28, 124, 18);
+            drawText(g, "E: Equip", x, y-26, 8, "rgba(232,240,255,.92)", "center");
+            g.restore();
+          }
+        }
+
+        const shake = this.fx.shake;
+        if(shake>0){
+          this.fx.shake = Math.max(0, shake - this.dt*6);
+        }
+
+        ctx.clearRect(0,0,cv.width,cv.height);
+
+        const scale = computeCanvasScale();
+        const sx = Math.floor((cv.width - off.width*scale)/2);
+        const sy = Math.floor((cv.height - off.height*scale)/2);
+
+        ctx.save();
+        if(shake>0){
+          const s = shake * 2.2;
+          ctx.translate(rnd(-s,s), rnd(-s,s));
+        }
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(off, sx, sy, off.width*scale, off.height*scale);
+        ctx.restore();
+      }
+    };
+
+    function computeCanvasScale(){
+      const cssW = wrap.clientWidth;
+      const cssH = wrap.clientHeight;
+      const pxScale = Math.floor(Math.min(cssW/off.width, cssH/off.height));
+      return clamp(pxScale, CONFIG.tech.pixelScaleMin, CONFIG.tech.pixelScaleMax);
+    }
+
+    function resize(){
+      const dpr = Math.max(1, Math.min(2.5, window.devicePixelRatio||1));
+      const rect = wrap.getBoundingClientRect();
+      cv.width = Math.floor(rect.width * dpr);
+      cv.height = Math.floor(rect.height * dpr);
+      ctx.setTransform(1,0,0,1,0,0);
+      ctx.scale(1,1);
+      ctx.imageSmoothingEnabled = false;
+    }
+    window.addEventListener("resize", resize, {passive:true});
+    resize();
+
+    UI.btnStart.addEventListener("click", ()=>{
+      if(GAME.state==="RUN"){
+        GAME.togglePause();
+      }else if(GAME.state==="HUB"){
+        GAME.startRun();
+      }else{
+        GAME.resetToHub(false);
+      }
+      SFX.ping("ui");
+    });
+
+    el("hubHeroCard").addEventListener("click", ()=>{ GAME.showHeroMaker(); SFX.ping("ui"); });
+    el("hubMetaCard").addEventListener("click", ()=>{ GAME.showMetaUpgrades(); SFX.ping("ui"); });
+
+    let last = now();
+    function frame(t){
+      const dt = clamp((t-last)/1000, 0, 0.05);
+      last = t;
+      GAME.dt = dt;
+
+      if(consumePressed("Space")){
+        GAME.togglePause();
+      }
+
+      if(consumePressed("r") || consumePressed("R")){
+        GAME.resetToHub(false);
+      }
+
+      if(GAME.state==="HUB"){
+        if(consumePressed("e") || consumePressed("E")){
+          const cur = (GAME.ui.hubSel||0);
+          if(cur===0) GAME.showHeroMaker();
+          else GAME.showMetaUpgrades();
+          SFX.ping("ui");
+        }
+        if(consumePressed("a") || consumePressed("A") || consumePressed("ArrowLeft")){
+          GAME.ui.hubSel = 0;
+          SFX.ping("ui");
+        }
+        if(consumePressed("d") || consumePressed("D") || consumePressed("ArrowRight")){
+          GAME.ui.hubSel = 1;
+          SFX.ping("ui");
+        }
+      }
+
+      if(GAME.state==="RUN"){
+        if(consumePressed("Shift")){
+          GAME.player.tryDash();
+        }
+        if(consumePressed("e") || consumePressed("E")){
+          GAME.tryInteract();
+        }
+        if(consumePressed("1")){
+          GAME.player.useConsumable("potion");
+        }
+        if(consumePressed("2")){
+          GAME.player.useConsumable("ether");
+        }
+      }
+
+      if(GAME.state==="HUB" && GAME.ui.subMode==="HEROMAKER"){
+        if(consumePressed("Space")){
+          GAME.startRun();
+        }
+      }
+
+      GAME.update(dt);
+
+      if(GAME.player){
+        const p = GAME.player;
+        UI.txtHP.textContent = `${Math.floor(p.hp)}/${Math.floor(p.stats.maxHP)}`;
+        UI.txtMP.textContent = `${Math.floor(p.mp)}/${Math.floor(p.stats.maxMP)}`;
+        UI.txtXP.textContent = `Lv ${p.level} (${p.xp}/${p.xpToNext()})`;
+        UI.txtGold.textContent = `Gold ${p.gold|0}`;
+        UI.txtStage.textContent = `Stage ${GAME.stage}/${CONFIG.game.stages}`;
+        UI.txtTime.textContent = `Time ${fmtTime(GAME.runTime)}`;
+        UI.barHP.style.width = `${clamp((p.hp/p.stats.maxHP)*100, 0, 100)}%`;
+        UI.barMP.style.width = `${clamp((p.mp/p.stats.maxMP)*100, 0, 100)}%`;
+        UI.barXP.style.width = `${clamp((p.xp/p.xpToNext())*100, 0, 100)}%`;
+
+        const dashTxt = p.dashReady() ? "Dash: Ready" : `Dash: ${(p.dashCD).toFixed(1)}s`;
+        UI.txtDash.textContent = dashTxt;
+
+        if(GAME.boss){
+          UI.txtBoss.textContent = `Boss: ${GAME.boss.name} (${Math.floor((GAME.boss.hp/GAME.boss.maxHP)*100)}%)`;
+        }else{
+          UI.txtBoss.textContent = CONFIG.game.bossStages.includes(GAME.stage) ? "Boss: Seek the lair" : "Boss: -";
+        }
+      }
+
+      UI.txtMeta.textContent = `${SAVE.meta.essence|0} ✦`;
+
+      if(GAME.state==="RUN"){
+        UI.overlayMain.classList.remove("on");
+        UI.overlayMain.setAttribute("aria-hidden","true");
+      }else if(GAME.state==="HUB"){
+        UI.overlayMain.classList.add("on");
+        UI.overlayMain.setAttribute("aria-hidden","false");
+        UI.hubGrid.style.display = "";
+        UI.ovTitle.textContent = "HUB";
+        UI.ovDesc.textContent = "Customize your pixel hero, spend meta essence, then press Space to begin the run.";
+        UI.btnStart.querySelector("span").textContent = "Start (Space)";
+      }
+
+      if(GAME.state==="LEVELUP" || GAME.state==="STAGECHOICE"){
+        UI.hudState.textContent = GAME.state;
+      }
+
+      if(GAME.state==="GAMEOVER" || GAME.state==="VICTORY"){
+        UI.hudState.textContent = GAME.state;
+      }
+
+      GAME.render();
+
+      clearTransientKeys();
+      requestAnimationFrame(frame);
+    }
+
+    GAME.resetToHub(false);
+    requestAnimationFrame(frame);
+
+    const fontCheck = ()=>{
+      const ok = document.fonts && document.fonts.check && document.fonts.check("12px 'Press Start 2P'");
+      if(!ok){
+        document.documentElement.style.setProperty("--px", CONFIG.tech.fontFallback);
+      }
+    };
+    setTimeout(fontCheck, 600);
+
+    const safeStartAudio = ()=>{
+      try{
+        SFX.ping("ui");
+      }catch(e){}
+      window.removeEventListener("pointerdown", safeStartAudio);
+      window.removeEventListener("keydown", safeStartAudio);
+    };
+    window.addEventListener("pointerdown", safeStartAudio, {passive:true});
+    window.addEventListener("keydown", safeStartAudio, {passive:true});
+
+  })();
+  </script>
+</body>
+</html>
+

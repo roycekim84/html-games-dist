@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>타이핑 레인 (Typing Rain)</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Press+Start+2P&display=swap');
+
+        /* === 기본 스타일 === */
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364); /* 비 오는 밤 하늘 */
+            color: white;
+            font-family: 'Noto Sans KR', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            user-select: none;
+        }
+
+        /* === UI 레이아웃 === */
+        #ui-layer {
+            position: absolute;
+            top: 20px;
+            width: 90%;
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.2rem;
+            text-shadow: 0 0 5px #00d2ff;
+            z-index: 10;
+        }
+
+        .stat-box {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 1px solid #00d2ff;
+        }
+
+        /* === 게임 캔버스 === */
+        canvas {
+            display: block;
+            z-index: 1;
+        }
+
+        /* === 도시 배경 (CSS로 그림) === */
+        .city-skyline {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 150px;
+            background-image: 
+                conic-gradient(from 180deg at 50% 100%, #1a1a1a 0%, #1a1a1a 10%, transparent 10%),
+                linear-gradient(to top, #000 0%, #1a1a1a 80%, transparent 100%);
+            background-size: 100px 100px, 100% 100%;
+            background-repeat: repeat-x, no-repeat;
+            z-index: 2;
+            pointer-events: none;
+            opacity: 0.8;
+        }
+        
+        /* 건물 실루엣 추가 장식 */
+        .city-skyline::after {
+            content: '';
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            background: 
+                linear-gradient(90deg, transparent 5px, #000 5px) 0 0 / 40px 100%,
+                linear-gradient(90deg, transparent 10px, #000 10px) 0 0 / 60px 80%;
+            opacity: 0.9;
+        }
+
+        /* === 입력창 === */
+        #input-container {
+            position: absolute;
+            bottom: 30px;
+            z-index: 20;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        #word-input {
+            width: 300px;
+            padding: 15px;
+            font-size: 1.5rem;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #00d2ff;
+            border-radius: 30px;
+            color: #fff;
+            outline: none;
+            box-shadow: 0 0 15px #00d2ff;
+            font-family: 'Noto Sans KR', sans-serif;
+            transition: transform 0.1s;
+        }
+
+        #word-input:focus {
+            transform: scale(1.05);
+        }
+
+        /* === 오버레이 (시작/종료 화면) === */
+        #overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(5px);
+        }
+
+        h1 {
+            font-family: 'Press Start 2P', cursive; /* 픽셀 폰트 느낌 */
+            font-size: 3rem;
+            color: #00d2ff;
+            text-shadow: 4px 4px 0px #ff00de;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            background: #ff00de;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Noto Sans KR', sans-serif;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(255, 0, 222, 0.4);
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: #d600ba;
+            transform: translateY(-3px);
+        }
+
+        #final-score {
+            font-size: 1.5rem;
+            color: #fff;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        /* === HP Bar === */
+        #hp-bar {
+            width: 200px;
+            height: 20px;
+            background: #333;
+            border: 1px solid #fff;
+            margin-top: 5px;
+            position: relative;
+        }
+        #hp-fill {
+            width: 100%;
+            height: 100%;
+            background: #ff4757;
+            transition: width 0.3s;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="city-skyline"></div>
+
+    <div id="ui-layer">
+        <div class="stat-box">
+            <div>점수: <span id="score">0</span></div>
+            <div>레벨: <span id="level">1</span></div>
+        </div>
+        <div class="stat-box" style="text-align: right;">
+            <div>정확도: <span id="accuracy">100</span>%</div>
+            <div id="hp-bar"><div id="hp-fill"></div></div>
+        </div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="input-container">
+        <input type="text" id="word-input" placeholder="단어를 입력하세요" autocomplete="off" disabled>
+    </div>
+
+    <div id="overlay">
+        <h1>TYPING RAIN</h1>
+        <div id="final-score" style="display: none;"></div>
+        <button class="btn" id="start-btn">게임 시작</button>
+    </div>
+
+    <script>
+        /**
+         * 게임 설정 및 단어 데이터
+         */
+        const wordsList = [
+            "하늘", "바람", "구름", "도시", "불빛", "자동차", "여행", "커피", "음악", "사랑",
+            "컴퓨터", "키보드", "마우스", "모니터", "개발자", "코딩", "자바스크립트", "알고리즘",
+            "인공지능", "데이터", "네트워크", "보안", "서버", "클라우드", "모바일", "애플리케이션",
+            "대한민국", "서울", "부산", "제주도", "한강", "남산", "비빔밥", "김치", "불고기",
+            "타이핑", "연습", "속도", "정확도", "집중력", "반사신경", "게임", "승리", "도전",
+            "FrontEnd", "BackEnd", "HTML", "CSS", "React", "Python", "Java", "Linux",
+            "혁신", "미래", "기술", "우주", "행성", "별똥별", "은하수", "블랙홀", "중력",
+            "고양이", "강아지", "호랑이", "사자", "코끼리", "기린", "펭귄", "독수리", "돌고래"
+        ];
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const input = document.getElementById('word-input');
+        const scoreEl = document.getElementById('score');
+        const levelEl = document.getElementById('level');
+        const accuracyEl = document.getElementById('accuracy');
+        const hpFill = document.getElementById('hp-fill');
+        const overlay = document.getElementById('overlay');
+        const startBtn = document.getElementById('start-btn');
+        const finalScoreEl = document.getElementById('final-score');
+
+        // 게임 상태 변수
+        let score = 0;
+        let level = 1;
+        let lives = 5;
+        let maxLives = 5;
+        let spawnedWords = 0;
+        let missedWords = 0;
+        let isPlaying = false;
+        let lastTime = 0;
+        let spawnTimer = 0;
+        let spawnInterval = 2000; // 초기 생성 간격 (ms)
+        let dropSpeedBase = 1.0; // 초기 낙하 속도
+
+        // 활성 단어 배열
+        let activeWords = [];
+        // 배경 빗방울 배열
+        let rainDrops = [];
+
+        /**
+         * 초기화 및 리사이징
+         */
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        /**
+         * 클래스 정의
+         */
+        class Word {
+            constructor(text) {
+                this.text = text;
+                this.width = ctx.measureText(text).width;
+                // 화면 너비 내에서 랜덤 X 위치 (여백 고려)
+                this.x = Math.random() * (canvas.width - 200) + 100; 
+                this.y = -30;
+                this.color = '#ffffff';
+                this.fontSize = 24;
+                // 레벨에 따른 속도 변화 (약간의 랜덤성 추가)
+                this.speed = (dropSpeedBase + (level * 0.2)) * (0.8 + Math.random() * 0.4);
+            }
+
+            draw() {
+                ctx.font = `bold ${this.fontSize}px 'Noto Sans KR'`;
+                
+                // 네온 효과 (그림자)
+                ctx.shadowColor = this.color === '#ff00de' ? '#ff00de' : '#00d2ff';
+                ctx.shadowBlur = 10;
+                ctx.fillStyle = this.color;
+                
+                ctx.fillText(this.text, this.x, this.y);
+                
+                // 텍스트 아래 빗방울 꼬리 효과
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.fillRect(this.x + 10, this.y - 50, 2, 40);
+            }
+
+            update() {
+                this.y += this.speed;
+            }
+        }
+
+        class Rain {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.length = Math.random() * 20 + 10;
+                this.speed = Math.random() * 5 + 5;
+                this.opacity = Math.random() * 0.5 + 0.1;
+            }
+
+            draw() {
+                ctx.strokeStyle = `rgba(174, 194, 224, ${this.opacity})`;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(this.x, this.y + this.length);
+                ctx.stroke();
+            }
+
+            update() {
+                this.y += this.speed;
+                if (this.y > canvas.height) {
+                    this.y = -this.length;
+                    this.x = Math.random() * canvas.width;
+                }
+            }
+        }
+
+        /**
+         * 게임 로직
+         */
+
+        function startGame() {
+            // 변수 초기화
+            score = 0;
+            level = 1;
+            lives = maxLives;
+            spawnedWords = 0;
+            missedWords = 0;
+            dropSpeedBase = 1.0;
+            spawnInterval = 2000;
+            activeWords = [];
+            rainDrops = [];
+            
+            // UI 초기화
+            scoreEl.innerText = score;
+            levelEl.innerText = level;
+            updateHP();
+            updateAccuracy();
+            input.value = '';
+            input.disabled = false;
+            input.focus();
+            
+            overlay.style.display = 'none';
+            isPlaying = true;
+            
+            // 배경 빗방울 생성
+            for(let i=0; i<100; i++) {
+                rainDrops.push(new Rain());
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function gameOver() {
+            isPlaying = false;
+            input.disabled = true;
+            input.blur();
+            
+            const accuracy = calculateAccuracy();
+            finalScoreEl.style.display = 'block';
+            finalScoreEl.innerHTML = `
+                점수: ${score}<br>
+                최종 레벨: ${level}<br>
+                정확도: ${accuracy}%
+            `;
+            startBtn.innerText = "다시 시작";
+            overlay.style.display = 'flex';
+        }
+
+        function calculateAccuracy() {
+            let total = score + missedWords; // 대략적인 계산 (정확히는 입력 횟수지만 단순화)
+            if (spawnedWords === 0) return 100;
+            let acc = Math.floor(((spawnedWords - missedWords) / spawnedWords) * 100);
+            return acc < 0 ? 0 : acc;
+        }
+
+        function updateAccuracy() {
+            accuracyEl.innerText = calculateAccuracy();
+        }
+
+        function updateHP() {
+            const percentage = (lives / maxLives) * 100;
+            hpFill.style.width = `${percentage}%`;
+            if (percentage < 30) {
+                hpFill.style.background = '#ff0000';
+            } else {
+                hpFill.style.background = '#ff4757';
+            }
+        }
+
+        function levelUp() {
+            level++;
+            levelEl.innerText = level;
+            // 난이도 상승: 속도 증가, 생성 간격 감소
+            spawnInterval = Math.max(500, 2000 - (level * 150));
+            
+            // 시각적 알림 (화면 깜빡임)
+            document.body.style.boxShadow = "inset 0 0 50px #00d2ff";
+            setTimeout(() => {
+                document.body.style.boxShadow = "none";
+            }, 300);
+        }
+
+        function spawnWord() {
+            const text = wordsList[Math.floor(Math.random() * wordsList.length)];
+            activeWords.push(new Word(text));
+            spawnedWords++;
+            updateAccuracy();
+        }
+
+        function checkInput() {
+            const typed = input.value.trim();
+            // 한글 조합 중이 아닐 때만 체크하고 싶지만, 실시간 반응을 위해 매번 체크
+            // 완전 일치하는 단어 찾기
+            const matchIndex = activeWords.findIndex(word => word.text === typed);
+
+            if (matchIndex !== -1) {
+                // 단어 제거 (성공)
+                const word = activeWords[matchIndex];
+                
+                // 점수 계산 (글자 수 * 10 * 레벨)
+                const gainedScore = word.text.length * 10 * level;
+                score += gainedScore;
+                scoreEl.innerText = score;
+
+                // 레벨업 체크 (500점 단위)
+                if (Math.floor(score / 500) >= level) {
+                    levelUp();
+                }
+
+                // 이펙트 및 제거
+                activeWords.splice(matchIndex, 1);
+                input.value = ''; // 입력창 비우기
+            }
+        }
+
+        function gameLoop(timestamp) {
+            if (!isPlaying) return;
+
+            // 델타 타임 계산 (프레임 보정용이지만 여기선 간단히 구현)
+            if (!lastTime) lastTime = timestamp;
+            const deltaTime = timestamp - lastTime;
+            lastTime = timestamp;
+
+            // 캔버스 클리어
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 1. 배경 비 그리기
+            rainDrops.forEach(drop => {
+                drop.update();
+                drop.draw();
+            });
+
+            // 2. 단어 생성 타이머
+            spawnTimer += deltaTime;
+            if (spawnTimer > spawnInterval) {
+                spawnWord();
+                spawnTimer = 0;
+            }
+
+            // 3. 단어 업데이트 및 그리기
+            for (let i = activeWords.length - 1; i >= 0; i--) {
+                const word = activeWords[i];
+                word.update();
+                word.draw();
+
+                // 바닥 충돌 체크 (도시 스카이라인 높이 150px 고려)
+                if (word.y > canvas.height - 100) {
+                    activeWords.splice(i, 1);
+                    missedWords++;
+                    lives--;
+                    updateHP();
+                    updateAccuracy();
+                    
+                    // 화면 붉게 깜빡임
+                    document.body.style.backgroundColor = '#300';
+                    setTimeout(() => {
+                         document.body.style.backgroundColor = ''; // CSS 그라데이션 복구는 별도 처리 필요하지만 간단히
+                    }, 100);
+
+                    if (lives <= 0) {
+                        gameOver();
+                    }
+                }
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // 이벤트 리스너
+        startBtn.addEventListener('click', startGame);
+        
+        // 입력 이벤트 (한글은 composition 이벤트가 중요하지만, input 이벤트로도 value 체크 가능)
+        input.addEventListener('input', checkInput);
+        
+        // 게임 시작 전 엔터키로 시작
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !isPlaying && overlay.style.display !== 'none') {
+                startGame();
+            }
+        });
+
+    </script>
+</body>
+</html>
