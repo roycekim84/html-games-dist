@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Royce Lab - HTML Game Gallery</title>
+  <style>
+    :root {{
+      --bg1:#0b1020; --bg2:#111a33; --card:rgba(255,255,255,.08); --stroke:rgba(255,255,255,.14);
+      --text:rgba(255,255,255,.92); --muted:rgba(255,255,255,.65);
+      --radius:18px;
+    }}
+    *{{box-sizing:border-box}}
+    body {{
+      margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif;
+      color:var(--text);
+      background: radial-gradient(900px 520px at 20% 10%, rgba(120,140,255,.18), transparent 60%),
+                  radial-gradient(900px 520px at 80% 30%, rgba(255,120,200,.12), transparent 60%),
+                  linear-gradient(160deg, var(--bg1), var(--bg2));
+      min-height:100vh;
+    }}
+    .wrap {{ max-width:1100px; margin:0 auto; padding:24px; }}
+    .top {{
+      display:flex; gap:12px; align-items:flex-end; justify-content:space-between; flex-wrap:wrap;
+      margin-bottom:18px;
+    }}
+    h1 {{ margin:0; font-size:22px; letter-spacing:-.3px; }}
+    .sub {{ margin:6px 0 0; color:var(--muted); font-size:13px; }}
+    .grid {{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap:14px;
+      margin-top:14px;
+    }}
+    .card {{
+      background:var(--card); border:1px solid var(--stroke); border-radius:var(--radius);
+      padding:14px; backdrop-filter: blur(10px);
+      box-shadow: 0 18px 60px rgba(0,0,0,.25);
+    }}
+    .name {{ font-size:16px; margin:0 0 8px; }}
+    .meta {{ font-size:12px; color:var(--muted); margin:0 0 12px; }}
+    .btnrow {{ display:flex; gap:10px; flex-wrap:wrap; }}
+    a.btn {{
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:10px 12px; border-radius:12px;
+      border:1px solid var(--stroke);
+      background: rgba(255,255,255,.06);
+      color:var(--text); text-decoration:none; font-size:13px;
+    }}
+    a.btn:hover {{ background: rgba(255,255,255,.10); }}
+    .empty {{
+      padding:18px; border:1px dashed rgba(255,255,255,.25); border-radius:var(--radius);
+      color:var(--muted);
+    }}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <h1>🎮 HTML Game Gallery</h1>
+        <p class="sub">dist 폴더를 Cloudflare Pages에 올리면 이 페이지가 게임 런처 역할을 합니다.</p>
+      </div>
+      <div class="sub" id="count"></div>
+    </div>
+
+    <div id="grid" class="grid"></div>
+    <div id="empty" class="empty" style="display:none;">아직 생성된 게임이 없습니다.</div>
+  </div>
+
+<script>
+async function main() {{
+  const grid = document.getElementById('grid');
+  const empty = document.getElementById('empty');
+  const count = document.getElementById('count');
+
+  let data;
+  try {{
+    const res = await fetch('./manifest.json', {{ cache: 'no-store' }});
+    data = await res.json();
+  }} catch (e) {{
+    empty.style.display = 'block';
+    empty.textContent = 'manifest.json을 불러오지 못했습니다.';
+    return;
+  }}
+
+  const games = (data && data.games) ? data.games : [];
+  count.textContent = `총 ${games.length}개`;
+
+  if (!games.length) {{
+    empty.style.display = 'block';
+    return;
+  }}
+
+  grid.innerHTML = '';
+  for (const g of games) {{
+    const card = document.createElement('div');
+    card.className = 'card';
+    const name = (g.name || 'Game');
+    const created = (g.created_at || '');
+    const file = (g.filename || '');
+
+    const encodedFile = encodeURI(file);
+
+    card.innerHTML = `
+    <p class="name">${name}</p>
+    <p class="meta">생성: ${created}</p>
+    <div class="btnrow">
+        <a class="btn" href="./${encodedFile}" target="_blank" rel="noopener">▶ 실행</a>
+        <a class="btn" href="./${encodedFile}" download>⬇ 다운로드</a>
+    </div>
+    `;
+    grid.appendChild(card);
+  }}
+}}
+main();
+</script>
+</body>
+</html>
